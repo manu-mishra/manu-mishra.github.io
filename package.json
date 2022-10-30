@@ -2,7 +2,7 @@
   "name": "webapp",
   "version": "0.0.0",
   "private": true,
-  "homepage": "https://manu-mishra.github.io/",
+  "homepage": "https://manu-mishra.github.io/manu-mishra.github.io/",
   "scripts": {
     "docusaurus": "docusaurus",
     "start": "docusaurus start",
