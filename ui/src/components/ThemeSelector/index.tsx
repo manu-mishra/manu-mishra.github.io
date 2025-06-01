@@ -74,10 +74,40 @@ export default function ThemeSelector(): JSX.Element {
   const [currentTheme, setCurrentTheme] = useState<string>('sunday');
   
   useEffect(() => {
-    // Get saved theme from localStorage or default to sunday
-    const savedTheme = localStorage.getItem('colorTheme') || 'sunday';
-    setCurrentTheme(savedTheme);
-    applyTheme(savedTheme);
+    // Listen for the dailyThemeApplied event from Root component
+    const handleDailyThemeApplied = () => {
+      // Get the current theme from localStorage (which should have been set by Root)
+      const currentThemeFromStorage = localStorage.getItem('colorTheme');
+      if (currentThemeFromStorage) {
+        console.log(`ThemeSelector: Detected theme change from Root component: ${currentThemeFromStorage}`);
+        setCurrentTheme(currentThemeFromStorage);
+      }
+    };
+    
+    // Add event listener
+    document.addEventListener('dailyThemeApplied', handleDailyThemeApplied);
+    
+    // Get the current theme from localStorage
+    const savedTheme = localStorage.getItem('colorTheme');
+    if (savedTheme) {
+      console.log(`ThemeSelector: Initial theme from localStorage: ${savedTheme}`);
+      setCurrentTheme(savedTheme);
+    } else {
+      // If no theme in localStorage, get today's theme
+      const today = new Date().getDay();
+      const dayThemeMap = {
+        0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 
+        4: 'thursday', 5: 'friday', 6: 'saturday'
+      };
+      const todayTheme = dayThemeMap[today];
+      console.log(`ThemeSelector: No theme in localStorage, using today's theme: ${todayTheme}`);
+      setCurrentTheme(todayTheme);
+    }
+    
+    // Clean up event listener
+    return () => {
+      document.removeEventListener('dailyThemeApplied', handleDailyThemeApplied);
+    };
   }, []);
   
   const applyTheme = (themeName: string) => {
@@ -173,7 +203,10 @@ export default function ThemeSelector(): JSX.Element {
     
     // Save theme preference
     localStorage.setItem('colorTheme', themeName);
+    localStorage.setItem('userSelectedTheme', 'true'); // Mark as user selected
     setCurrentTheme(themeName);
+    
+    console.log(`ThemeSelector: User manually selected theme: ${themeName}`);
   };
   
   return (

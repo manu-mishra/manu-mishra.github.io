@@ -8,13 +8,53 @@ export default function Root({children}) {
       return; // Skip on server-side rendering
     }
     
-    // Function to apply the theme pattern
-    const applyThemePattern = () => {
-      // Get the saved theme from localStorage
-      const savedTheme = localStorage.getItem('colorTheme') || 'sunday';
-      console.log('Applying theme pattern:', savedTheme);
+    // Function to apply the theme based on the day of the week
+    const applyDailyTheme = () => {
+      // Get the current day of the week (0 = Sunday, 1 = Monday, etc.)
+      const today = new Date().getDay();
       
-      // Remove all pattern classes from body
+      // Map day number to theme name
+      const dayThemeMap = {
+        0: 'sunday',    // Sunday
+        1: 'monday',    // Monday
+        2: 'tuesday',   // Tuesday
+        3: 'wednesday', // Wednesday
+        4: 'thursday',  // Thursday
+        5: 'friday',    // Friday
+        6: 'saturday'   // Saturday
+      };
+      
+      // Get the theme for today
+      const todayTheme = dayThemeMap[today];
+      
+      console.log(`Root component: Today is day ${today}, theme should be ${todayTheme}`);
+      
+      // Check if user has manually selected a theme
+      const userSelectedTheme = localStorage.getItem('colorTheme');
+      
+      if (!userSelectedTheme) {
+        console.log(`Root component: No user selected theme found, applying daily theme: ${todayTheme}`);
+        
+        // Save the theme to localStorage
+        localStorage.removeItem('colorTheme'); // Clear any existing theme
+        localStorage.setItem('colorTheme', todayTheme);
+        
+        // Apply the theme pattern
+        applyThemePattern(todayTheme);
+        
+        // Apply the theme colors
+        applyThemeColors(todayTheme);
+        
+        // Force a reload to ensure the theme is applied
+        window.location.reload();
+      } else {
+        console.log(`Root component: User has manually selected theme: ${userSelectedTheme}`);
+      }
+    };
+    
+    // Function to apply theme patterns
+    const applyThemePattern = (themeName) => {
+      // Remove all pattern classes
       document.body.classList.remove(
         'pattern-sunday', 
         'pattern-monday', 
@@ -25,133 +65,135 @@ export default function Root({children}) {
         'pattern-saturday'
       );
       
-      // Add the saved pattern class to body
-      document.body.classList.add(`pattern-${savedTheme}`);
+      // Add the day-specific pattern class
+      document.body.classList.add(`pattern-${themeName}`);
+      console.log(`Root component: Applied pattern class pattern-${themeName}`);
+    };
+    
+    // Function to apply theme colors
+    const applyThemeColors = (themeName) => {
+      const root = document.documentElement;
+      const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
       
-      // Create or update the style element for direct CSS injection
-      let styleElement = document.getElementById('dynamic-pattern-styles');
-      if (!styleElement) {
-        styleElement = document.createElement('style');
-        styleElement.id = 'dynamic-pattern-styles';
-        document.head.appendChild(styleElement);
-      }
-      
-      // Define the pattern styles based on the current theme
-      const getPatternStyle = (theme) => {
-        switch(theme) {
-          case 'sunday':
-            return `
-              .hero::before, header[class*="Header"]::before {
-                background-image: 
-                  repeating-linear-gradient(60deg, rgba(255, 127, 0, 0.1) 0px, rgba(255, 127, 0, 0.1) 1px, transparent 1px, transparent 15px),
-                  repeating-linear-gradient(120deg, rgba(255, 127, 0, 0.1) 0px, rgba(255, 127, 0, 0.1) 1px, transparent 1px, transparent 15px),
-                  repeating-linear-gradient(0deg, rgba(255, 127, 0, 0.05) 0px, rgba(255, 127, 0, 0.05) 1px, transparent 1px, transparent 15px) !important;
-                background-size: 30px 30px !important;
-              }
-            `;
-          case 'monday':
-            return `
-              .hero::before, header[class*="Header"]::before {
-                background-image: 
-                  radial-gradient(circle, rgba(184, 198, 219, 0.2) 1px, transparent 6px),
-                  radial-gradient(circle, rgba(184, 198, 219, 0.15) 1px, transparent 4px) !important;
-                background-size: 30px 30px, 20px 20px !important;
-                background-position: 0 0, 15px 15px !important;
-              }
-            `;
-          case 'tuesday':
-            return `
-              .hero::before, header[class*="Header"]::before {
-                background-image: 
-                  linear-gradient(45deg, rgba(255, 0, 0, 0.1) 25%, transparent 25%),
-                  linear-gradient(135deg, rgba(255, 0, 0, 0.1) 25%, transparent 25%) !important;
-                background-size: 20px 20px !important;
-              }
-            `;
-          case 'wednesday':
-            return `
-              .hero::before, header[class*="Header"]::before {
-                background-image: 
-                  linear-gradient(0deg, rgba(0, 166, 81, 0.05) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(0, 166, 81, 0.05) 1px, transparent 1px) !important;
-                background-size: 15px 15px !important;
-              }
-            `;
-          case 'thursday':
-            return `
-              .hero::before, header[class*="Header"]::before {
-                background-image: 
-                  repeating-linear-gradient(30deg, rgba(255, 223, 0, 0.1) 0px, rgba(255, 223, 0, 0.1) 1px, transparent 1px, transparent 15px),
-                  repeating-linear-gradient(150deg, rgba(255, 223, 0, 0.1) 0px, rgba(255, 223, 0, 0.1) 1px, transparent 1px, transparent 15px),
-                  repeating-linear-gradient(90deg, rgba(255, 223, 0, 0.05) 0px, rgba(255, 223, 0, 0.05) 1px, transparent 1px, transparent 15px) !important;
-                background-size: 25px 25px !important;
-              }
-            `;
-          case 'friday':
-            return `
-              .hero::before, header[class*="Header"]::before {
-                background-image: 
-                  radial-gradient(circle, rgba(135, 206, 235, 0.15) 3px, transparent 3px),
-                  radial-gradient(circle, rgba(135, 206, 235, 0.1) 1px, transparent 5px) !important;
-                background-size: 30px 30px, 40px 40px !important;
-                background-position: 0 0, 15px 15px !important;
-              }
-            `;
-          case 'saturday':
-            return `
-              .hero::before, header[class*="Header"]::before {
-                background-image: 
-                  linear-gradient(0deg, transparent 24px, rgba(0, 0, 128, 0.1) 25px, rgba(0, 0, 128, 0.1) 26px, transparent 27px, transparent 49px),
-                  linear-gradient(90deg, transparent 24px, rgba(0, 0, 128, 0.1) 25px, rgba(0, 0, 128, 0.1) 26px, transparent 27px, transparent 49px) !important;
-                background-size: 50px 50px !important;
-              }
-            `;
-          default:
-            return '';
-        }
+      // Theme color mapping
+      const themeColors = {
+        sunday: '#FF7F00',    // Orange
+        monday: '#FFFFFF',    // White/Silver
+        tuesday: '#FF0000',   // Red
+        wednesday: '#00A651', // Green
+        thursday: '#FFDF00',  // Yellow
+        friday: '#87CEEB',    // Sky Blue
+        saturday: '#000080'   // Navy Blue
       };
       
-      // Inject the styles
-      styleElement.textContent = getPatternStyle(savedTheme);
-    };
-    
-    // Apply theme pattern on initial load
-    applyThemePattern();
-    
-    // Apply after a delay to ensure all elements are loaded
-    setTimeout(applyThemePattern, 100);
-    setTimeout(applyThemePattern, 500);
-    
-    // Set up storage event listener to detect theme changes from other tabs/windows
-    const handleStorageChange = (event) => {
-      if (event.key === 'colorTheme') {
-        applyThemePattern();
+      // Get the primary color for the theme
+      let primaryColor = themeColors[themeName];
+      
+      // Special handling for Monday (white) in light mode - use a light gray instead
+      if (themeName === 'monday' && !isDarkMode) {
+        primaryColor = '#b8c6db'; // Light blue-gray for better visibility in light mode
+      } else if (themeName === 'monday' && isDarkMode) {
+        primaryColor = '#d4e0ff'; // Light blue for dark mode
       }
+      
+      // Special handling for Saturday (dark blue/black) in dark mode - use a lighter shade
+      if (themeName === 'saturday' && isDarkMode) {
+        primaryColor = '#3a3a8c'; // Lighter shade of dark blue for dark mode
+      }
+      
+      // Set primary colors
+      root.style.setProperty('--ifm-color-primary', primaryColor);
+      console.log(`Root component: Applied primary color ${primaryColor}`);
+      
+      // Generate and set derived colors
+      const darkenPercent = (color, percent) => {
+        // Skip for white (monday) and black (saturday)
+        if (color === '#FFFFFF' || color === '#000000' || color === '#000080') {
+          if (color === '#FFFFFF') return '#e6e6e6';
+          if (color === '#000000') return '#1a1a1a';
+          if (color === '#000080') return '#00005c';
+        }
+        
+        const hex = color.replace('#', '');
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        
+        const darkenAmount = percent / 100;
+        const dr = Math.floor(r * (1 - darkenAmount));
+        const dg = Math.floor(g * (1 - darkenAmount));
+        const db = Math.floor(b * (1 - darkenAmount));
+        
+        return `#${dr.toString(16).padStart(2, '0')}${dg.toString(16).padStart(2, '0')}${db.toString(16).padStart(2, '0')}`;
+      };
+      
+      const lightenPercent = (color, percent) => {
+        // Skip for white (monday) and black (saturday)
+        if (color === '#FFFFFF' || color === '#000000' || color === '#000080') {
+          if (color === '#FFFFFF') return '#ffffff';
+          if (color === '#000000') return '#4d4d4d';
+          if (color === '#000080') return '#0000b3';
+        }
+        
+        const hex = color.replace('#', '');
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        
+        const lightenAmount = percent / 100;
+        const lr = Math.min(255, Math.floor(r + (255 - r) * lightenAmount));
+        const lg = Math.min(255, Math.floor(g + (255 - g) * lightenAmount));
+        const lb = Math.min(255, Math.floor(b + (255 - b) * lightenAmount));
+        
+        return `#${lr.toString(16).padStart(2, '0')}${lg.toString(16).padStart(2, '0')}${lb.toString(16).padStart(2, '0')}`;
+      };
+      
+      root.style.setProperty('--ifm-color-primary-dark', darkenPercent(primaryColor, 10));
+      root.style.setProperty('--ifm-color-primary-darker', darkenPercent(primaryColor, 15));
+      root.style.setProperty('--ifm-color-primary-darkest', darkenPercent(primaryColor, 25));
+      root.style.setProperty('--ifm-color-primary-light', lightenPercent(primaryColor, 10));
+      root.style.setProperty('--ifm-color-primary-lighter', lightenPercent(primaryColor, 15));
+      root.style.setProperty('--ifm-color-primary-lightest', lightenPercent(primaryColor, 25));
     };
     
-    // Listen for theme changes
-    window.addEventListener('storage', handleStorageChange);
-    document.addEventListener('themeChanged', applyThemePattern);
+    // Check if this is a new day since the last visit
+    const lastVisitDay = localStorage.getItem('lastVisitDay');
+    const today = new Date().getDay().toString();
     
-    // Listen for navigation events in Docusaurus
-    const handleNavigation = () => {
-      console.log('Navigation detected, reapplying pattern');
-      setTimeout(applyThemePattern, 50);
-      setTimeout(applyThemePattern, 200);
-    };
+    if (lastVisitDay !== today) {
+      console.log(`Root component: New day detected (last: ${lastVisitDay}, today: ${today})`);
+      localStorage.setItem('lastVisitDay', today);
+      
+      // Only apply the daily theme if the user hasn't manually selected one
+      if (!localStorage.getItem('userSelectedTheme')) {
+        applyDailyTheme();
+      }
+    }
     
-    // Docusaurus navigation events
-    document.addEventListener('docusaurus.navigated', handleNavigation);
-    document.addEventListener('docusaurus.navigate.start', handleNavigation);
-    document.addEventListener('docusaurus.navigate.end', handleNavigation);
+    // Check for theme changes at midnight
+    const now = new Date();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
     
-    // Clean up event listeners when the component unmounts
+    const timeUntilMidnight = tomorrow - now;
+    console.log(`Root component: Time until midnight: ${timeUntilMidnight}ms`);
+    
+    // Set a timeout to update the theme at midnight
+    const midnightTimeout = setTimeout(() => {
+      localStorage.removeItem('lastVisitDay'); // Reset the last visit day
+      applyDailyTheme();
+      
+      // Set up a daily interval after the first midnight
+      setInterval(() => {
+        localStorage.removeItem('lastVisitDay');
+        applyDailyTheme();
+      }, 24 * 60 * 60 * 1000);
+    }, timeUntilMidnight);
+    
+    // Clean up the timeout when the component unmounts
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      document.removeEventListener('themeChanged', applyThemePattern);
-      document.removeEventListener('docusaurus.navigated', handleNavigation);
-      document.removeEventListener('docusaurus.navigate.start', handleNavigation);
-      document.removeEventListener('docusaurus.navigate.end', handleNavigation);
+      clearTimeout(midnightTimeout);
     };
   }, []);
 
