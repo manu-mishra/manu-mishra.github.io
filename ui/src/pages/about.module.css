@@ -1,0 +1,90 @@
+.aboutHeader {
+  padding: 2rem 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--ifm-color-primary);
+  color: var(--ifm-color-white);
+}
+
+.aboutContent {
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+.aboutContent h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--ifm-color-primary);
+}
+
+.aboutContent h3 {
+  font-size: 1.8rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: var(--ifm-color-primary-dark);
+}
+
+.aboutContent p {
+  margin-bottom: 1.5rem;
+}
+
+.aboutContent ul {
+  padding-left: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.aboutContent li {
+  margin-bottom: 0.5rem;
+}
+
+.profileImageContainer {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.profileImage {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 5px solid var(--ifm-color-primary);
+}
+
+.skillsSection, .certificationsSection {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: var(--ifm-color-emphasis-100);
+  border-radius: 8px;
+}
+
+.skillTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.skillTag {
+  background-color: var(--ifm-color-primary-lightest);
+  color: var(--ifm-color-primary-darkest);
+  padding: 0.4rem 0.8rem;
+  border-radius: 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.certificationsSection ul {
+  columns: 2;
+  -webkit-columns: 2;
+  -moz-columns: 2;
+}
+
+@media (max-width: 768px) {
+  .certificationsSection ul {
+    columns: 1;
+    -webkit-columns: 1;
+    -moz-columns: 1;
+  }
+}

@@ -6,25 +6,230 @@
 
 /* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
+  /* Modern tech blue theme */
+  --ifm-color-primary: #0070f3;
+  --ifm-color-primary-dark: #0064da;
+  --ifm-color-primary-darker: #005ecd;
+  --ifm-color-primary-darkest: #004da9;
+  --ifm-color-primary-light: #1a7fff;
+  --ifm-color-primary-lighter: #2689ff;
+  --ifm-color-primary-lightest: #4d9fff;
+  
+  /* Background and text colors */
+  --ifm-background-color: #ffffff;
+  --ifm-font-color-base: #1a1a2e;
+  
+  /* Navbar styling */
+  --ifm-navbar-background-color: rgba(255, 255, 255, 0.8);
+  --ifm-navbar-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+  --ifm-navbar-link-hover-color: var(--ifm-color-primary);
+  
+  /* Card styling */
+  --ifm-card-background-color: #ffffff;
+  --ifm-card-border-radius: 12px;
+  
+  /* Other customizations */
   --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --ifm-font-family-base: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --ifm-heading-font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --ifm-heading-font-weight: 700;
+  --ifm-global-radius: 8px;
+  --ifm-button-border-radius: 8px;
+  
+  /* Code highlighting */
+  --docusaurus-highlighted-code-line-bg: rgba(0, 112, 243, 0.1);
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
+/* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  /* Using the same blue theme for dark mode */
+  --ifm-color-primary: #0070f3;
+  --ifm-color-primary-dark: #0064da;
+  --ifm-color-primary-darker: #005ecd;
+  --ifm-color-primary-darkest: #004da9;
+  --ifm-color-primary-light: #1a7fff;
+  --ifm-color-primary-lighter: #2689ff;
+  --ifm-color-primary-lightest: #4d9fff;
+  
+  /* Background and text colors */
+  --ifm-background-color: #0f1121;
+  --ifm-background-surface-color: #161a2b;
+  --ifm-font-color-base: #e6e6fa;
+  
+  /* Navbar styling */
+  --ifm-navbar-background-color: rgba(15, 17, 33, 0.8);
+  --ifm-navbar-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  
+  /* Card styling */
+  --ifm-card-background-color: #161a2b;
+  
+  /* Code highlighting */
+  --docusaurus-highlighted-code-line-bg: rgba(0, 112, 243, 0.2);
 }
+
+/* Global styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Navbar styling */
+.navbar {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Add a subtle gradient to the header backgrounds */
+.hero, .aboutHeader, .experienceHeader {
+  background: linear-gradient(135deg, var(--ifm-color-primary-darkest), var(--ifm-color-primary));
+  position: relative;
+  overflow: hidden;
+}
+
+/* Add a futuristic grid pattern overlay */
+.hero::before, .aboutHeader::before, .experienceHeader::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+  z-index: 1;
+}
+
+.hero__content, .container {
+  position: relative;
+  z-index: 2;
+}
+
+/* Card hover effects */
+.card {
+  transition: all 0.3s ease;
+  border: 1px solid rgba(var(--ifm-color-primary-rgb), 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+  border-color: rgba(var(--ifm-color-primary-rgb), 0.3);
+}
+
+/* Button styling */
+.button {
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(var(--ifm-color-primary-rgb), 0.2);
+}
+
+.button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(var(--ifm-color-primary-rgb), 0.4);
+}
+
+/* Fix for outline buttons on dark backgrounds */
+.ctaSection .button--outline {
+  color: white !important;
+  border-color: white !important;
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.ctaSection .button--outline:hover {
+  background-color: white;
+  color: var(--ifm-color-primary-darkest) !important;
+}
+
+.ctaSection .button--outline .socialIcon {
+  fill: white !important;
+}
+
+.ctaSection .button--outline:hover .socialIcon {
+  fill: var(--ifm-color-primary-darkest) !important;
+}
+
+/* Timeline customization */
+.timelineContainer::after {
+  background: linear-gradient(to bottom, var(--ifm-color-primary-lightest), var(--ifm-color-primary-darkest));
+}
+
+.timelineItem::after {
+  box-shadow: 0 0 0 4px rgba(var(--ifm-color-primary-rgb), 0.3);
+  background: var(--ifm-background-color);
+  border-color: var(--ifm-color-primary);
+}
+
+/* Skill tags styling */
+.skillTag {
+  background: linear-gradient(135deg, var(--ifm-color-primary-lighter), var(--ifm-color-primary));
+  color: white;
+  font-weight: 500;
+  box-shadow: 0 2px 5px rgba(var(--ifm-color-primary-rgb), 0.3);
+  transition: all 0.3s ease;
+}
+
+.skillTag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(var(--ifm-color-primary-rgb), 0.5);
+}
+
+/* Add a subtle animation to the profile image */
+.profileImage {
+  transition: all 0.5s ease;
+  box-shadow: 0 0 0 5px rgba(var(--ifm-color-primary-rgb), 0.2),
+              0 0 20px rgba(var(--ifm-color-primary-rgb), 0.4);
+}
+
+.profileImage:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 0 5px rgba(var(--ifm-color-primary-rgb), 0.3),
+              0 0 30px rgba(var(--ifm-color-primary-rgb), 0.6);
+}
+
+/* Add a glow effect to headings */
+h1, h2 {
+  position: relative;
+  display: inline-block;
+}
+
+h1::after, h2::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 100px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--ifm-color-primary), transparent);
+  border-radius: 2px;
+}
+
+/* Add custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ifm-background-surface-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ifm-color-primary);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ifm-color-primary-dark);
+}
+
+/* Add font imports */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');

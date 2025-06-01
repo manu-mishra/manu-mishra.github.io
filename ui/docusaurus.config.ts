@@ -4,7 +4,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'Manu Mishra',
-  tagline: 'Personal Blog',
+  tagline: 'Solutions Architect & Applied Software Engineer',
   favicon: 'img/logo.png',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -42,6 +42,7 @@ const config: Config = {
           },
           // Remove editUrl to remove the "edit this page" links
           authorsMapPath: './blog/authors.yml',
+          onInlineAuthors: 'ignore',
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -60,10 +61,17 @@ const config: Config = {
         src: 'img/logo.png',
       },
       items: [
+        {to: '/experience', label: 'Experience', position: 'left'},
         {to: '/blog', label: 'Blog', position: 'left'},
+        {to: '/about', label: 'About', position: 'left'},
         {
           href: 'https://github.com/manu-mishra',
           label: 'GitHub',
+          position: 'right',
+        },
+        {
+          href: 'https://linkedin.com/in/manu-mishra',
+          label: 'LinkedIn',
           position: 'right',
         },
       ],
@@ -71,6 +79,23 @@ const config: Config = {
     footer: {
       style: 'dark',
       links: [
+        {
+          title: 'Portfolio',
+          items: [
+            {
+              label: 'Experience',
+              to: '/experience',
+            },
+            {
+              label: 'Blog',
+              to: '/blog',
+            },
+            {
+              label: 'About',
+              to: '/about',
+            },
+          ],
+        },
         {
           title: 'Connect',
           items: [
@@ -80,16 +105,11 @@ const config: Config = {
             },
             {
               label: 'LinkedIn',
-              href: 'https://linkedin.com/in/manumishra',
+              href: 'https://linkedin.com/in/manu-mishra',
             },
-          ],
-        },
-        {
-          title: 'More',
-          items: [
             {
-              label: 'Blog',
-              to: '/blog',
+              label: 'Email',
+              href: 'mailto:mishra.manu@outlook.com',
             },
           ],
         },
@@ -97,12 +117,15 @@ const config: Config = {
       copyright: `Copyright © ${new Date().getFullYear()} Manu Mishra. Built with Docusaurus.`,
     },
     prism: {
-      theme: prismThemes.github,
+      theme: prismThemes.dracula,
       darkTheme: prismThemes.dracula,
+    },
+    colorMode: {
+      defaultMode: 'dark',
+      disableSwitch: false,
+      respectPrefersColorScheme: true,
     },
   } satisfies Preset.ThemeConfig,
 };
-
-export default config;
 
 export default config;
