@@ -21,8 +21,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Build job
-  build:
+  build-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -31,7 +33,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'
           cache: 'npm'
           cache-dependency-path: './ui/package-lock.json'
           
@@ -51,16 +53,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './docs'
-
-  # Deployment job
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
+          path: './ui/build'
+          
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
