@@ -1,0 +1,39 @@
+.pageHeader {
+  padding: 2rem 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--ifm-color-primary-darkest), var(--ifm-color-primary));
+  color: var(--ifm-color-white);
+}
+
+.pageHeaderBackground {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
+.pageHeader h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.pageHeader p {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  margin-bottom: 0;
+  position: relative;
+  z-index: 2;
+}
+
+/* Make sure all content inside the header is above the grid pattern */
+.pageHeader .container {
+  position: relative;
+  z-index: 2;
+}

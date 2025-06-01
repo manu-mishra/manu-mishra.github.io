@@ -1,5 +1,6 @@
 import React from 'react';
 import Layout from '@theme/Layout';
+import PageHeader from '../components/PageHeader';
 import styles from './about.module.css';
 
 export default function About(): JSX.Element {
@@ -7,11 +8,7 @@ export default function About(): JSX.Element {
     <Layout
       title="About Me"
       description="About Manu Mishra - Solutions Architect & Applied Software Engineer">
-      <header className={styles.aboutHeader}>
-        <div className="container">
-          <h1>About Me</h1>
-        </div>
-      </header>
+      <PageHeader title="About Me" />
       <main className="container margin-vert--lg">
         <div className="row">
           <div className="col col--8 col--offset-2">

@@ -8,8 +8,12 @@ import styles from './index.module.css';
 
 function HomepageHeader() {
   const {siteConfig} = useDocusaurusContext();
+  
+  // Get the current theme from localStorage
+  const savedTheme = typeof window !== 'undefined' ? localStorage.getItem('colorTheme') || 'sunday' : 'sunday';
+  
   return (
-    <header className={clsx('hero', styles.heroBanner)}>
+    <header className={clsx('hero', styles.heroBanner, `pattern-${savedTheme}-hero`)}>
       <div className="container">
         <div className={styles.visitingCard}>
           <div className={styles.visitingCardContent}>

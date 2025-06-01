@@ -1,0 +1,141 @@
+.themesHeader {
+  padding: 2rem 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--ifm-color-primary);
+  color: var(--ifm-color-white);
+}
+
+.themesHeader h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.themesHeader p {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+.themePreview {
+  margin-top: 3rem;
+  padding: 2rem;
+  border-radius: 12px;
+  background-color: var(--ifm-card-background-color);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.themePreview h2 {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.previewSection {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.previewSection:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.previewSection h3 {
+  margin-bottom: 1.5rem;
+  color: var(--ifm-color-primary);
+}
+
+.buttonGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.cardGroup {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.previewCard {
+  padding: 1.5rem;
+  border-radius: 8px;
+  background-color: var(--ifm-background-surface-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  border: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.previewCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border-color: var(--ifm-color-primary);
+}
+
+.previewCard h4 {
+  margin-bottom: 1rem;
+  color: var(--ifm-color-primary);
+}
+
+.accentGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+}
+
+.accentItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.accentCircle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: var(--ifm-color-primary);
+}
+
+.accentCircleDark {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: var(--ifm-color-primary-dark);
+}
+
+.accentCircleLight {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: var(--ifm-color-primary-light);
+}
+
+.themeInfo {
+  margin-top: 3rem;
+  padding: 2rem;
+  border-radius: 12px;
+  background-color: var(--ifm-color-emphasis-100);
+}
+
+.themeInfo h3 {
+  margin-bottom: 1rem;
+}
+
+@media screen and (max-width: 768px) {
+  .buttonGroup {
+    flex-direction: column;
+  }
+  
+  .cardGroup {
+    grid-template-columns: 1fr;
+  }
+  
+  .accentGroup {
+    gap: 1rem;
+  }
+}

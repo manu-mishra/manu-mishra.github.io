@@ -64,6 +64,7 @@ const config: Config = {
         {to: '/experience', label: 'Experience', position: 'left'},
         {to: '/blog', label: 'Blog', position: 'left'},
         {to: '/about', label: 'About', position: 'left'},
+        {to: '/themes', label: 'Themes', position: 'left'},
         {
           href: 'https://github.com/manu-mishra',
           label: 'GitHub',

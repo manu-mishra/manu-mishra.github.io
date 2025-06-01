@@ -1,6 +1,7 @@
 import React from 'react';
 import Layout from '@theme/Layout';
 import Timeline, { TimelineItem } from '../components/Timeline';
+import PageHeader from '../components/PageHeader';
 import styles from './experience.module.css';
 
 const experienceItems: TimelineItem[] = [
@@ -97,12 +98,10 @@ export default function Experience(): JSX.Element {
     <Layout
       title="Professional Experience"
       description="Manu Mishra's professional experience and career timeline">
-      <header className={styles.experienceHeader}>
-        <div className="container">
-          <h1>Professional Experience</h1>
-          <p>My journey through the tech industry</p>
-        </div>
-      </header>
+      <PageHeader 
+        title="Professional Experience"
+        description="My journey through the tech industry"
+      />
       <main className="container margin-vert--lg">
         <Timeline items={experienceItems} />
       </main>

@@ -1,0 +1,69 @@
+/* Day-specific background patterns based on traditional yantra designs */
+
+/* Sunday (Surya) - Interlaced Triangles (Shatkona/Hexagram) */
+.pattern-sunday::before {
+  background-image: 
+    repeating-linear-gradient(60deg, rgba(255, 127, 0, 0.1) 0px, rgba(255, 127, 0, 0.1) 1px, transparent 1px, transparent 15px),
+    repeating-linear-gradient(120deg, rgba(255, 127, 0, 0.1) 0px, rgba(255, 127, 0, 0.1) 1px, transparent 1px, transparent 15px),
+    repeating-linear-gradient(0deg, rgba(255, 127, 0, 0.05) 0px, rgba(255, 127, 0, 0.05) 1px, transparent 1px, transparent 15px);
+  background-size: 30px 30px;
+}
+
+/* Monday (Chandra) - Crescent and Circle patterns */
+.pattern-monday::before {
+  background-image: 
+    radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 6px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 4px);
+  background-size: 30px 30px, 20px 20px;
+  background-position: 0 0, 15px 15px;
+}
+
+/* Tuesday (Mangala) - Upward Triangle (Trikona) */
+.pattern-tuesday::before {
+  background-image: 
+    linear-gradient(45deg, rgba(255, 0, 0, 0.1) 25%, transparent 25%),
+    linear-gradient(135deg, rgba(255, 0, 0, 0.1) 25%, transparent 25%);
+  background-size: 20px 20px;
+}
+
+/* Wednesday (Budha) - Square Grid (mini-squares) */
+.pattern-wednesday::before {
+  background-image: 
+    linear-gradient(0deg, rgba(0, 166, 81, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 166, 81, 0.05) 1px, transparent 1px);
+  background-size: 15px 15px;
+}
+
+/* Thursday (Guru) - Interlaced Triangles/Hexagon (Shatkona) */
+.pattern-thursday::before {
+  background-image: 
+    repeating-linear-gradient(30deg, rgba(255, 223, 0, 0.1) 0px, rgba(255, 223, 0, 0.1) 1px, transparent 1px, transparent 15px),
+    repeating-linear-gradient(150deg, rgba(255, 223, 0, 0.1) 0px, rgba(255, 223, 0, 0.1) 1px, transparent 1px, transparent 15px),
+    repeating-linear-gradient(90deg, rgba(255, 223, 0, 0.05) 0px, rgba(255, 223, 0, 0.05) 1px, transparent 1px, transparent 15px);
+  background-size: 25px 25px;
+}
+
+/* Friday (Shukra) - Circle/Bindu and Lotus Petals */
+.pattern-friday::before {
+  background-image: 
+    radial-gradient(circle, rgba(135, 206, 235, 0.15) 3px, transparent 3px),
+    radial-gradient(circle, rgba(135, 206, 235, 0.1) 1px, transparent 5px);
+  background-size: 30px 30px, 40px 40px;
+  background-position: 0 0, 15px 15px;
+}
+
+/* Saturday (Shani) - Solid Square or Square Grid */
+.pattern-saturday::before {
+  background-image: 
+    linear-gradient(0deg, transparent 24px, rgba(0, 0, 128, 0.1) 25px, rgba(0, 0, 128, 0.1) 26px, transparent 27px, transparent 49px),
+    linear-gradient(90deg, transparent 24px, rgba(0, 0, 128, 0.1) 25px, rgba(0, 0, 128, 0.1) 26px, transparent 27px, transparent 49px);
+  background-size: 50px 50px;
+}
+
+/* Default pattern (fallback) */
+.pattern-default::before {
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
