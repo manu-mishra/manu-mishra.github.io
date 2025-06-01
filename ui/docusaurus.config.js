@@ -7,7 +7,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Manu Mishra',
-  tagline: 'Hey Friends!!',
+  tagline: 'Hey Friend!!',
   favicon: 'img/logo.png',
 
   // Set the production url of your site here
