@@ -74,40 +74,35 @@ export default function ThemeSelector(): JSX.Element {
   const [currentTheme, setCurrentTheme] = useState<string>('sunday');
   
   useEffect(() => {
-    // Listen for the dailyThemeApplied event from Root component
-    const handleDailyThemeApplied = () => {
-      // Get the current theme from localStorage (which should have been set by Root)
-      const currentThemeFromStorage = localStorage.getItem('colorTheme');
-      if (currentThemeFromStorage) {
-        console.log(`ThemeSelector: Detected theme change from Root component: ${currentThemeFromStorage}`);
-        setCurrentTheme(currentThemeFromStorage);
-      }
-    };
-    
-    // Add event listener
-    document.addEventListener('dailyThemeApplied', handleDailyThemeApplied);
-    
-    // Get the current theme from localStorage
-    const savedTheme = localStorage.getItem('colorTheme');
-    if (savedTheme) {
-      console.log(`ThemeSelector: Initial theme from localStorage: ${savedTheme}`);
-      setCurrentTheme(savedTheme);
-    } else {
-      // If no theme in localStorage, get today's theme
-      const today = new Date().getDay();
-      const dayThemeMap = {
-        0: 'sunday', 1: 'monday', 2: 'tuesday', 3: 'wednesday', 
-        4: 'thursday', 5: 'friday', 6: 'saturday'
-      };
-      const todayTheme = dayThemeMap[today];
-      console.log(`ThemeSelector: No theme in localStorage, using today's theme: ${todayTheme}`);
-      setCurrentTheme(todayTheme);
+    // Only run on client-side
+    if (typeof window === 'undefined') {
+      return;
     }
     
-    // Clean up event listener
-    return () => {
-      document.removeEventListener('dailyThemeApplied', handleDailyThemeApplied);
-    };
+    // Get saved theme from localStorage
+    const savedTheme = localStorage.getItem('colorTheme');
+    
+    // If there's a saved theme, use it
+    if (savedTheme) {
+      setCurrentTheme(savedTheme);
+    } else {
+      // Otherwise, use the day's theme
+      const today = new Date().getDay();
+      const dayThemeMap = {
+        0: 'sunday',    // Sunday
+        1: 'monday',    // Monday
+        2: 'tuesday',   // Tuesday
+        3: 'wednesday', // Wednesday
+        4: 'thursday',  // Thursday
+        5: 'friday',    // Friday
+        6: 'saturday'   // Saturday
+      };
+      const todayTheme = dayThemeMap[today];
+      setCurrentTheme(todayTheme);
+      
+      // Save it to localStorage
+      localStorage.setItem('colorTheme', todayTheme);
+    }
   }, []);
   
   const applyTheme = (themeName: string) => {
@@ -197,16 +192,10 @@ export default function ThemeSelector(): JSX.Element {
     );
     document.body.classList.add(`pattern-${themeName}`);
     
-    // Create a custom event to notify other components about the theme change
-    const event = new CustomEvent('themeChanged', { detail: { theme: themeName } });
-    document.dispatchEvent(event);
-    
     // Save theme preference
     localStorage.setItem('colorTheme', themeName);
     localStorage.setItem('userSelectedTheme', 'true'); // Mark as user selected
     setCurrentTheme(themeName);
-    
-    console.log(`ThemeSelector: User manually selected theme: ${themeName}`);
   };
   
   return (

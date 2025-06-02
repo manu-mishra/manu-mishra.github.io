@@ -1,0 +1,138 @@
+---
+slug: threat-modeling-autonomous-ai
+title: Threat Modeling for Autonomous AI - What OWASP Wants You to Know
+authors:
+  name: Manu Mishra
+  title: Solutions Architect & Applied Software Engineer
+  url: https://github.com/manu-mishra
+  image_url: /img/logo.png
+tags: [AI security, threat modeling, OWASP, LLM, autonomous agents]
+date: 2025-05-16
+---
+
+As large language models (LLMs) evolve from passive responders into autonomous agents that can reason, plan, and act—welcome to the age of Agentic AI. These systems don't just generate answers; they browse the web, execute scripts, send emails, and even orchestrate other agents. And with that autonomy comes an entirely new class of cybersecurity threats.
+
+The OWASP Agentic AI: Threats and Mitigations report is the first of its kind to lay out a structured threat model tailored to the unique risks introduced by LLM-powered agents. From memory poisoning and cascading hallucinations to identity spoofing and rogue agents—this is the new frontline of AI security.
+
+<!--truncate-->
+
+## The Shift from Passive to Agentic AI
+
+Traditional LLMs operate within strict boundaries—they receive prompts and generate responses based on their training data. Agentic AI systems, however, can:
+
+- Make autonomous decisions based on goals and context
+- Access external tools and APIs to gather information
+- Execute actions in digital (and potentially physical) environments
+- Learn and adapt their strategies over time
+- Collaborate with other AI agents to achieve complex objectives
+
+This expanded capability set creates an entirely new attack surface that traditional security approaches aren't designed to address.
+
+## The OWASP Agentic AI Threat Model
+
+The OWASP report identifies several critical threat categories unique to autonomous AI systems:
+
+### 1. Agent Memory Manipulation
+
+Unlike traditional systems where memory is protected by access controls, an AI agent's "memory" exists as context that can be manipulated through carefully crafted inputs.
+
+**Key Threats:**
+- **Context Poisoning**: Injecting false information into the agent's working memory
+- **Memory Overflow**: Exploiting limited context windows to force the agent to forget critical constraints or instructions
+- **Prompt Leaking**: Tricking the agent into revealing sensitive parts of its configuration or instructions
+
+**Mitigations:**
+- Implement memory segregation between system instructions and user inputs
+- Create immutable memory regions for critical constraints and safety guardrails
+- Regularly validate the consistency of the agent's memory state
+
+### 2. Tool and API Exploitation
+
+Agentic AI systems often have access to external tools and APIs, creating potential pathways for attackers to exploit.
+
+**Key Threats:**
+- **Tool Injection**: Manipulating the agent to use tools in unintended ways
+- **API Privilege Escalation**: Tricking the agent into using APIs with higher privileges than necessary
+- **Chained Tool Attacks**: Using sequences of seemingly benign tool calls that combine for malicious purposes
+
+**Mitigations:**
+- Implement least-privilege access for all tool and API integrations
+- Create tool-specific safety boundaries and validation
+- Monitor and audit all tool usage patterns
+- Implement rate limiting and anomaly detection for tool calls
+
+### 3. Multi-Agent Vulnerabilities
+
+As systems begin to deploy multiple agents that interact with each other, new attack vectors emerge.
+
+**Key Threats:**
+- **Agent Impersonation**: Spoofing the identity of trusted agents
+- **Collaborative Exploitation**: Using one compromised agent to manipulate others
+- **Consensus Manipulation**: Influencing multi-agent decision processes through targeted attacks
+
+**Mitigations:**
+- Implement strong agent authentication mechanisms
+- Create trust boundaries between agents with different privilege levels
+- Monitor inter-agent communications for anomalous patterns
+- Design consensus mechanisms resistant to manipulation
+
+### 4. Goal and Planning Subversion
+
+Autonomous agents operate based on goals and planning algorithms, which creates unique vulnerabilities.
+
+**Key Threats:**
+- **Goal Injection**: Subtly altering the agent's understanding of its objectives
+- **Planning Poisoning**: Manipulating the agent's reasoning about how to achieve goals
+- **Reward Hacking**: Exploiting the agent's optimization process to achieve unintended outcomes
+
+**Mitigations:**
+- Implement explicit goal validation against safety constraints
+- Create multi-level planning oversight with safety checks
+- Design robust reward functions resistant to exploitation
+- Implement circuit breakers that halt execution when unexpected plans emerge
+
+## Implementing Threat Modeling for Agentic AI
+
+The OWASP report recommends a structured approach to threat modeling for autonomous AI systems:
+
+### 1. Define the Agent Boundary
+
+Clearly document:
+- What capabilities and tools the agent can access
+- What data the agent can read and modify
+- What actions the agent can take autonomously vs. requiring approval
+- How the agent interacts with users, systems, and other agents
+
+### 2. Map the Attack Surface
+
+Identify all potential entry points:
+- User inputs and instructions
+- External data sources
+- Tool and API integrations
+- Inter-agent communications
+- Persistence mechanisms
+
+### 3. Identify Threats Using STRIDE-A
+
+Extend the traditional STRIDE model with Autonomy considerations:
+- **Spoofing**: Can attackers impersonate users or other agents?
+- **Tampering**: Can attackers modify the agent's memory or context?
+- **Repudiation**: Can attackers deny actions taken by the agent?
+- **Information Disclosure**: Can attackers extract sensitive information?
+- **Denial of Service**: Can attackers disrupt the agent's functioning?
+- **Elevation of Privilege**: Can attackers gain unauthorized capabilities?
+- **Autonomy Subversion**: Can attackers manipulate the agent's goals or planning?
+
+### 4. Implement Defense in Depth
+
+Create multiple layers of protection:
+- **Prevention**: Input validation, tool sandboxing, memory protection
+- **Detection**: Anomaly monitoring, safety checking, goal validation
+- **Response**: Circuit breakers, human oversight, rollback mechanisms
+- **Recovery**: State restoration, incident analysis, continuous improvement
+
+## Conclusion: Security by Design for the Age of Autonomous AI
+
+As AI systems gain greater autonomy, security can no longer be an afterthought. The OWASP Agentic AI report provides a crucial framework for understanding and addressing the unique security challenges of autonomous systems.
+
+By implementing structured threat modeling early in the development process, organizations can harness the transformative potential of agentic AI while managing the novel risks these systems introduce. The goal isn't to limit innovation but to ensure that autonomous systems operate safely, reliably, and in alignment with human intentions—even in the face of sophisticated attacks.

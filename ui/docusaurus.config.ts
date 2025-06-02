@@ -24,6 +24,15 @@ const config: Config = {
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
 
+  // Add scripts for early theme application
+  scripts: [
+    {
+      src: '/scripts/apply-theme.js',
+      async: false,
+      defer: false,
+    },
+  ],
+
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
