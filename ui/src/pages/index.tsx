@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
+import HomepageBlogPosts from '../components/HomepageBlogPosts';
 
 import styles from './index.module.css';
 
@@ -164,6 +165,7 @@ export default function Home(): JSX.Element {
       description="Manu Mishra - Solutions Architect & Applied Software Engineer">
       <HomepageHeader />
       <main>
+        <HomepageBlogPosts />
         <HomepageFeatures />
         <TechStack />
         <div className={styles.ctaSection}>

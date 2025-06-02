@@ -1,0 +1,126 @@
+.blogSection {
+  padding: 3rem 0;
+  background-color: var(--ifm-background-surface-color);
+}
+
+.blogSectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.blogSectionTitle {
+  font-size: 2rem;
+  margin: 0;
+}
+
+.viewAllLink {
+  font-weight: 600;
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+.viewAllLink:hover {
+  text-decoration: none;
+  color: var(--ifm-color-primary-dark);
+}
+
+.viewAllLink::after {
+  content: '→';
+  margin-left: 0.5rem;
+  transition: transform 0.2s ease;
+}
+
+.viewAllLink:hover::after {
+  transform: translateX(3px);
+}
+
+.blogCard {
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: var(--ifm-card-background-color);
+  margin-bottom: 2rem;
+}
+
+.blogCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.blogCardContent {
+  padding: 1.5rem;
+}
+
+.blogCardTitle {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.blogCardTitle a {
+  color: var(--ifm-heading-color);
+  text-decoration: none;
+}
+
+.blogCardTitle a:hover {
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+
+.blogCardMeta {
+  font-size: 0.875rem;
+  color: var(--ifm-color-emphasis-600);
+  margin-bottom: 1rem;
+}
+
+.readingTime {
+  margin-left: 0.25rem;
+}
+
+.blogCardDescription {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--ifm-color-emphasis-700);
+  margin-bottom: 1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.blogCardTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.blogCardTag {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  background-color: var(--ifm-color-emphasis-200);
+  color: var(--ifm-color-emphasis-800);
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.blogCardTag:hover {
+  background-color: var(--ifm-color-primary-lightest);
+  color: var(--ifm-color-primary-darkest);
+  text-decoration: none;
+}
+
+@media (max-width: 996px) {
+  .blogSectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}

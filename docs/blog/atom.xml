@@ -554,31 +554,6 @@
         <category label="innovation" term="innovation"/>
     </entry>
     <entry>
-        <title type="html"><![CDATA[Welcome to My Blog]]></title>
-        <id>https://manumishra.com/blog/welcome</id>
-        <link href="https://manumishra.com/blog/welcome"/>
-        <updated>2023-06-01T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[Welcome to my blog! This is where I'll be sharing my thoughts, experiences, and insights on technology, software development, and other topics that interest me.]]></summary>
-        <content type="html"><![CDATA[<p>Welcome to my blog! This is where I'll be sharing my thoughts, experiences, and insights on technology, software development, and other topics that interest me.</p>
-<p>Stay tuned for more content coming soon!</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="what-to-expect">What to Expect<a href="https://manumishra.com/blog/welcome#what-to-expect" class="hash-link" aria-label="Direct link to What to Expect" title="Direct link to What to Expect">​</a></h2>
-<p>In this blog, I plan to cover a variety of topics including:</p>
-<ul>
-<li>Software development best practices</li>
-<li>Technology trends and insights</li>
-<li>Personal projects and experiences</li>
-<li>Tutorials and how-to guides</li>
-</ul>
-<p>I'm excited to share my journey with you and hope you find the content valuable and engaging.</p>
-<p>Feel free to reach out to me on <a href="https://github.com/manu-mishra" target="_blank" rel="noopener noreferrer">GitHub</a> if you have any questions or suggestions for topics you'd like me to cover.</p>]]></content>
-        <author>
-            <name>Manu Mishra</name>
-            <uri>https://github.com/manu-mishra</uri>
-        </author>
-        <category label="welcome" term="welcome"/>
-        <category label="introduction" term="introduction"/>
-    </entry>
-    <entry>
         <title type="html"><![CDATA[The Craftsmanship of Software Engineering - Why We Should Objectify Tools, Not Debates]]></title>
         <id>https://manumishra.com/blog/software-craftsmanship</id>
         <link href="https://manumishra.com/blog/software-craftsmanship"/>

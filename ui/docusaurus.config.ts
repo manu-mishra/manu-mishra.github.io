@@ -52,9 +52,21 @@ const config: Config = {
           // Remove editUrl to remove the "edit this page" links
           authorsMapPath: './blog/authors.yml',
           onInlineAuthors: 'ignore',
+          blogSidebarTitle: 'All Blog Posts',
+          blogSidebarCount: 'ALL',
+          sortPosts: 'descending',
+          postsPerPage: 6,
+          blogListComponent: '@theme/BlogListPage',
+          blogPostComponent: '@theme/BlogPostPage',
         },
         theme: {
           customCss: './src/css/custom.css',
+        },
+        sitemap: {
+          changefreq: 'weekly',
+          priority: 0.5,
+          ignorePatterns: ['/themes/**', '/tags/**'],
+          filename: 'sitemap.xml',
         },
       } satisfies Preset.Options,
     ],
@@ -73,7 +85,6 @@ const config: Config = {
         {to: '/experience', label: 'Experience', position: 'left'},
         {to: '/blog', label: 'Blog', position: 'left'},
         {to: '/about', label: 'About', position: 'left'},
-        {to: '/themes', label: 'Themes', position: 'left'},
         {
           href: 'https://github.com/manu-mishra',
           label: 'GitHub',

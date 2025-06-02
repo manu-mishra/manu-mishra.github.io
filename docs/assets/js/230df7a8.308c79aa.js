@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkuiv_2=self.webpackChunkuiv_2||[]).push([[596],{5086:a=>{a.exports=JSON.parse('{"tag":{"label":"OWASP","permalink":"/blog/tags/owasp","allTagsPath":"/blog/tags","count":1,"unlisted":false},"listMetadata":{"permalink":"/blog/tags/owasp","page":1,"postsPerPage":6,"totalPages":1,"totalCount":1,"blogDescription":"Blog","blogTitle":"Blog"}}')}}]);

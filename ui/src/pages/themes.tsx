@@ -2,6 +2,7 @@ import React from 'react';
 import Layout from '@theme/Layout';
 import ThemeSelector from '../components/ThemeSelector';
 import PageHeader from '../components/PageHeader';
+import Head from '@docusaurus/Head';
 import styles from './themes.module.css';
 
 export default function Themes(): JSX.Element {
@@ -9,6 +10,9 @@ export default function Themes(): JSX.Element {
     <Layout
       title="Theme Customization"
       description="Customize the theme of Manu Mishra's portfolio website">
+      <Head>
+        <meta name="robots" content="noindex, nofollow" />
+      </Head>
       <PageHeader 
         title="Theme Customization"
         description="Select a color theme for the website"
