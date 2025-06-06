@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkuiv_2=self.webpackChunkuiv_2||[]).push([[121],{8070:e=>{e.exports=JSON.parse('{"tags":[{"label":"welcome","permalink":"/blog/tags/welcome","count":1},{"label":"introduction","permalink":"/blog/tags/introduction","count":1}]}')}}]);

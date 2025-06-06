@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkuiv_2=self.webpackChunkuiv_2||[]).push([[477],{3099:a=>{a.exports=JSON.parse('{"tag":{"label":"debates","permalink":"/blog/tags/debates","allTagsPath":"/blog/tags","count":1,"unlisted":false},"listMetadata":{"permalink":"/blog/tags/debates","page":1,"postsPerPage":10,"totalPages":1,"totalCount":1,"blogDescription":"Blog","blogTitle":"Blog"}}')}}]);
