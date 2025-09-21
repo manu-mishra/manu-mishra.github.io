@@ -2,11 +2,117 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://manumishra.com/blog</id>
     <title>Manu Mishra Blog</title>
-    <updated>2025-06-20T00:00:00.000Z</updated>
+    <updated>2025-09-21T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://manumishra.com/blog"/>
     <subtitle>Manu Mishra Blog</subtitle>
     <icon>https://manumishra.com/img/logo.png</icon>
+    <entry>
+        <title type="html"><![CDATA[Google's EmbeddingGemma on AWS Lambda - A Curiosity-Driven Experiment]]></title>
+        <id>https://manumishra.com/blog/embeddings-gemma-on-lambda</id>
+        <link href="https://manumishra.com/blog/embeddings-gemma-on-lambda"/>
+        <updated>2025-09-21T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Deploy Google's EmbeddingGemma 300M parameter embedding model on AWS Lambda using container-based architecture. Includes performance benchmarks, cold start analysis, and complete deployment guide.]]></summary>
+        <content type="html"><![CDATA[<p><img decoding="async" loading="lazy" alt="EmbeddingGemma on AWS Lambda" src="https://manumishra.com/assets/images/embeddings-gemma-lambda-287f228bdf79dafe957097edaad2ce75.png" width="1024" height="1024" class="img_ev3q"></p>
+<p><em>Note: This is a curiosity-driven experiment, not a production recommendation. For real workloads, <a href="https://aws.amazon.com/sagemaker/" target="_blank" rel="noopener noreferrer">Amazon SageMaker</a> is the right choice. This project explores what's possible when you push serverless boundaries.</em></p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="1-the-idea">1. The idea<a href="https://manumishra.com/blog/embeddings-gemma-on-lambda#1-the-idea" class="hash-link" aria-label="Direct link to 1. The idea" title="Direct link to 1. The idea">​</a></h2>
+<p>After my <a href="https://community.aws/content/2ynHjrct8JLUEN6mADtT2IYh5bR/microsoft-bitnet-1-58-bit-llms-on-aws-lambda" target="_blank" rel="noopener noreferrer">BitNet Lambda experiment</a>, I kept thinking: what about embeddings? I had text generation working on Lambda, but what about the other half of modern AI applications?</p>
+<p>Google's EmbeddingGemma caught my attention—300M parameters, multilingual, designed for efficiency. Could it work on Lambda? Only one way to find out.</p>
+<p>So I fired up Amazon Q Developer and started experimenting.</p>
+<!-- -->
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="2-why-embeddings-matter">2. Why embeddings matter<a href="https://manumishra.com/blog/embeddings-gemma-on-lambda#2-why-embeddings-matter" class="hash-link" aria-label="Direct link to 2. Why embeddings matter" title="Direct link to 2. Why embeddings matter">​</a></h2>
+<p>Modern AI applications need both text generation and embeddings. RAG systems, semantic search, document processing—they all require this dual capability. I had the generation part working with BitNet, but what about embeddings?</p>
+<p>EmbeddingGemma sits in a sweet spot: 300M parameters (~1.2GB) with multilingual support for 100+ languages. Unlike massive text generation models, embedding models are:</p>
+<ul>
+<li><strong>Predictable</strong>: Fixed output dimensions (768 floats)</li>
+<li><strong>Efficient</strong>: Single forward pass, no autoregressive generation</li>
+<li><strong>Compact</strong>: Smaller memory footprint than multi-billion parameter LLMs</li>
+</ul>
+<p>That efficiency profile makes "Lambda + Embeddings" the perfect complement to my BitNet experiment—completing the serverless AI toolkit.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="3-the-architecture">3. The architecture<a href="https://manumishra.com/blog/embeddings-gemma-on-lambda#3-the-architecture" class="hash-link" aria-label="Direct link to 3. The architecture" title="Direct link to 3. The architecture">​</a></h2>
+<p>The architecture stayed simple: API Gateway triggers a Lambda function with 2GB memory. Inside lives a container image with transformers, sentence-transformers, and the complete EmbeddingGemma model. Lambda processes the text and returns a 768-dimensional vector.</p>
+<p>Thanks to Amazon Q's help, I optimized the container to embed the entire model (~1.2GB) while keeping cold starts reasonable. No external model loading, no S3 downloads—everything lives in the container.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="4-amazon-q-as-co-pilot">4. Amazon Q as co-pilot<a href="https://manumishra.com/blog/embeddings-gemma-on-lambda#4-amazon-q-as-co-pilot" class="hash-link" aria-label="Direct link to 4. Amazon Q as co-pilot" title="Direct link to 4. Amazon Q as co-pilot">​</a></h2>
+<p>Amazon Q CLI didn't just automate—it elevated the entire workflow. When I asked it to create a Dockerfile that could efficiently package transformers and the EmbeddingGemma model, it didn't just generate code—it explained why sentence-transformers was the right choice over raw transformers.</p>
+<p>For infrastructure, Q generated a clean CDK stack targeting Lambda with ARM64 architecture and 2GB memory. When builds failed or performance lagged, Q helped interpret CloudWatch logs and suggested memory optimizations.</p>
+<p>Having Claude Sonnet inside Q made this feel like pair programming with someone who actually understood ML deployment patterns.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="5-performance-results">5. Performance results<a href="https://manumishra.com/blog/embeddings-gemma-on-lambda#5-performance-results" class="hash-link" aria-label="Direct link to 5. Performance results" title="Direct link to 5. Performance results">​</a></h2>
+<p>The numbers tell the story:</p>
+<ul>
+<li><strong>Cold start</strong>: 12 seconds (not bad for a 300M model)</li>
+<li><strong>Warm inference</strong>: 0.12-0.33 seconds per embedding</li>
+<li><strong>Cost</strong>: ~$0.001 per request for short texts</li>
+<li><strong>Memory sweet spot</strong>: 2GB (4GB+ shows no improvement)</li>
+</ul>
+<p>Combined with BitNet for text generation, this setup creates a complete serverless AI toolkit that shines for:</p>
+<ul>
+<li><strong>RAG systems</strong>: BitNet for generation, EmbeddingGemma for retrieval</li>
+<li><strong>Semantic search</strong>: Document vectorization and similarity matching</li>
+<li><strong>Prototype APIs</strong>: Quick AI services for testing and experimentation</li>
+</ul>
+<p>It struggles with:</p>
+<ul>
+<li><strong>Batch processing</strong>: Linear scaling kills economics</li>
+<li><strong>Real-time chat</strong>: 12-second cold starts hurt UX</li>
+<li><strong>High throughput</strong>: Concurrent requests need full memory allocation</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="6-the-convergence">6. The convergence<a href="https://manumishra.com/blog/embeddings-gemma-on-lambda#6-the-convergence" class="hash-link" aria-label="Direct link to 6. The convergence" title="Direct link to 6. The convergence">​</a></h2>
+<p>Two trends are colliding: models are getting more efficient while serverless platforms evolve. EmbeddingGemma represents the "efficient model" side—compact, purpose-built, and CPU-friendly.</p>
+<p>On the platform side, we're seeing serverless runtimes optimize for AI workloads. When these trends meet—lightweight models and AI-aware serverless compute—deploying embeddings will be as casual as deploying a REST API.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="7-reality-check">7. Reality check<a href="https://manumishra.com/blog/embeddings-gemma-on-lambda#7-reality-check" class="hash-link" aria-label="Direct link to 7. Reality check" title="Direct link to 7. Reality check">​</a></h2>
+<p>Let's be honest about the numbers:</p>
+<p><strong>Text length scaling</strong>:</p>
+<ul>
+<li>10 characters: 0.32s</li>
+<li>99 characters: 1.05s</li>
+<li>588 characters: 4.06s</li>
+</ul>
+<p><strong>Memory efficiency</strong>:</p>
+<ul>
+<li>2GB: Optimal performance</li>
+<li>4GB+: No improvement, 2x cost</li>
+</ul>
+<p><strong>Infrastructure overhead</strong>: 0.7-0.8 seconds of the total latency is network + AWS API processing, not model inference.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="8-why-not-production">8. Why not production<a href="https://manumishra.com/blog/embeddings-gemma-on-lambda#8-why-not-production" class="hash-link" aria-label="Direct link to 8. Why not production" title="Direct link to 8. Why not production">​</a></h2>
+<p>While technically successful, several factors make this unsuitable for serious workloads:</p>
+<p><strong>Economics don't scale</strong>: 2GB memory allocation for sporadic requests burns money. SageMaker's auto-scaling and GPU optimization provide better cost-per-embedding at volume.</p>
+<p><strong>Cold start penalty</strong>: 12-second delays kill user experience for interactive applications.</p>
+<p><strong>Better alternatives exist</strong>: Purpose-built ML infrastructure (SageMaker, ECS with GPUs) offers superior performance and economics for production embedding workloads.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="9-the-real-value">9. The real value<a href="https://manumishra.com/blog/embeddings-gemma-on-lambda#9-the-real-value" class="hash-link" aria-label="Direct link to 9. The real value" title="Direct link to 9. The real value">​</a></h2>
+<p>This experiment's worth isn't in production deployment—it's about curiosity. What happens when you run Google's EmbeddingGemma in AWS Lambda? Can a 300M parameter embedding model really work in serverless compute? How does it perform?</p>
+<p><strong>Curiosity-driven insights</strong>: How EmbeddingGemma behaves in Lambda's constraints, memory optimization patterns for embedding models, and container packaging strategies you can only discover by trying.</p>
+<p><strong>Learning by doing</strong>: Understanding where EmbeddingGemma's efficiency meets Lambda's limitations, and where the serverless tax becomes prohibitive for ML workloads.</p>
+<p><strong>Future signals</strong>: As embedding models get more efficient and Lambda evolves, today's experiments with EmbeddingGemma become tomorrow's possibilities.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="10-wrapping-up">10. Wrapping up<a href="https://manumishra.com/blog/embeddings-gemma-on-lambda#10-wrapping-up" class="hash-link" aria-label="Direct link to 10. Wrapping up" title="Direct link to 10. Wrapping up">​</a></h2>
+<p>Running Google's EmbeddingGemma on AWS Lambda isn't about beating dedicated ML infrastructure—it's about curiosity. What if you could deploy Google's embedding model as easily as a REST API? What would EmbeddingGemma's performance look like in Lambda? How much would it cost?</p>
+<p>The question was simple: "What about embeddings on Lambda?" Sometimes the best experiments come from pure curiosity about what's possible when you combine Google's efficient embedding model with AWS's serverless compute.</p>
+<p>The complete EmbeddingGemma-on-Lambda implementation is on <a href="https://github.com/manu-mishra/embeddings-gemma-on-lambda" target="_blank" rel="noopener noreferrer">GitHub</a>. Clone it, try it, break it. See how far you can push EmbeddingGemma in Lambda before reaching for SageMaker.</p>
+<p>And if you're curious about other Google models on AWS Lambda, let's chat about what other "impossible" combinations might be worth trying.</p>
+<hr>
+<p><em>This project was built using vibe coding techniques with Amazon Q Developer, demonstrating how AI-assisted development can accelerate experimentation while maintaining architectural rigor.</em></p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="references">References<a href="https://manumishra.com/blog/embeddings-gemma-on-lambda#references" class="hash-link" aria-label="Direct link to References" title="Direct link to References">​</a></h2>
+<ul>
+<li><a href="https://huggingface.co/google/embeddinggemma-300m" target="_blank" rel="noopener noreferrer">Google EmbeddingGemma Model</a></li>
+<li><a href="https://ai.google.dev/gemma/docs/embeddinggemma" target="_blank" rel="noopener noreferrer">EmbeddingGemma Overview</a></li>
+<li><a href="https://github.com/manu-mishra/embeddings-gemma-on-lambda" target="_blank" rel="noopener noreferrer">Project Repository</a></li>
+<li><a href="https://github.com/manu-mishra/embeddings-gemma-on-lambda/blob/main/docs/PERFORMANCE.md" target="_blank" rel="noopener noreferrer">Performance Benchmarks</a></li>
+<li><a href="https://community.aws/content/2ynHjrct8JLUEN6mADtT2IYh5bR/microsoft-bitnet-1-58-bit-llms-on-aws-lambda" target="_blank" rel="noopener noreferrer">Previous BitNet Lambda Article</a></li>
+<li><a href="https://www.linkedin.com/pulse/vibe-coding-vegas-158-bit-llm-aws-lambda-manu-mishra-s0joc/" target="_blank" rel="noopener noreferrer">Vibe Coding in Vegas LinkedIn Article</a></li>
+<li><a href="https://aws.amazon.com/q/developer/" target="_blank" rel="noopener noreferrer">Amazon Q Developer</a></li>
+<li><a href="https://aws.amazon.com/sagemaker/" target="_blank" rel="noopener noreferrer">Amazon SageMaker</a></li>
+</ul>]]></content>
+        <author>
+            <name>Manu Mishra</name>
+            <uri>https://github.com/manu-mishra</uri>
+        </author>
+        <category label="aws lambda" term="aws lambda"/>
+        <category label="embeddings" term="embeddings"/>
+        <category label="google gemma" term="google gemma"/>
+        <category label="serverless" term="serverless"/>
+        <category label="machine learning" term="machine learning"/>
+        <category label="multilingual" term="multilingual"/>
+        <category label="cost optimization" term="cost optimization"/>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Running 1.58-bit LLMs on AWS Lambda - When Serverless Meets Extreme Quantization]]></title>
         <id>https://manumishra.com/blog/deploy-microsoft-bitnet-llm-on-aws-lambda</id>

@@ -1,0 +1,136 @@
+---
+slug: embeddings-gemma-on-lambda
+title: Google's EmbeddingGemma on AWS Lambda - A Curiosity-Driven Experiment
+description: Deploy Google's EmbeddingGemma 300M parameter embedding model on AWS Lambda using container-based architecture. Includes performance benchmarks, cold start analysis, and complete deployment guide.
+keywords: [google embeddinggemma, aws lambda embeddings, serverless ai, embedding models, lambda container, multilingual embeddings, aws ai inference, docker deployment, embedding inference]
+image: /img/blog/embeddings-gemma-lambda.png
+authors:
+  name: Manu Mishra
+  title: Solutions Architect & Applied Software Engineer
+  url: https://github.com/manu-mishra
+  image_url: /img/logo.png
+tags: [aws lambda, embeddings, google gemma, serverless, machine learning, multilingual, cost optimization]
+date: 2025-09-21
+---
+
+![EmbeddingGemma on AWS Lambda](/img/blog/embeddings-gemma-lambda.png)
+
+*Note: This is a curiosity-driven experiment, not a production recommendation. For real workloads, [Amazon SageMaker](https://aws.amazon.com/sagemaker/) is the right choice. This project explores what's possible when you push serverless boundaries.*
+
+## 1. The idea
+
+After my [BitNet Lambda experiment](https://community.aws/content/2ynHjrct8JLUEN6mADtT2IYh5bR/microsoft-bitnet-1-58-bit-llms-on-aws-lambda), I kept thinking: what about embeddings? I had text generation working on Lambda, but what about the other half of modern AI applications?
+
+Google's EmbeddingGemma caught my attention—300M parameters, multilingual, designed for efficiency. Could it work on Lambda? Only one way to find out.
+
+So I fired up Amazon Q Developer and started experimenting.
+
+{/* truncate */}
+
+## 2. Why embeddings matter
+
+Modern AI applications need both text generation and embeddings. RAG systems, semantic search, document processing—they all require this dual capability. I had the generation part working with BitNet, but what about embeddings?
+
+EmbeddingGemma sits in a sweet spot: 300M parameters (~1.2GB) with multilingual support for 100+ languages. Unlike massive text generation models, embedding models are:
+- **Predictable**: Fixed output dimensions (768 floats)
+- **Efficient**: Single forward pass, no autoregressive generation
+- **Compact**: Smaller memory footprint than multi-billion parameter LLMs
+
+That efficiency profile makes "Lambda + Embeddings" the perfect complement to my BitNet experiment—completing the serverless AI toolkit.
+
+## 3. The architecture
+
+The architecture stayed simple: API Gateway triggers a Lambda function with 2GB memory. Inside lives a container image with transformers, sentence-transformers, and the complete EmbeddingGemma model. Lambda processes the text and returns a 768-dimensional vector.
+
+Thanks to Amazon Q's help, I optimized the container to embed the entire model (~1.2GB) while keeping cold starts reasonable. No external model loading, no S3 downloads—everything lives in the container.
+
+## 4. Amazon Q as co-pilot
+
+Amazon Q CLI didn't just automate—it elevated the entire workflow. When I asked it to create a Dockerfile that could efficiently package transformers and the EmbeddingGemma model, it didn't just generate code—it explained why sentence-transformers was the right choice over raw transformers.
+
+For infrastructure, Q generated a clean CDK stack targeting Lambda with ARM64 architecture and 2GB memory. When builds failed or performance lagged, Q helped interpret CloudWatch logs and suggested memory optimizations.
+
+Having Claude Sonnet inside Q made this feel like pair programming with someone who actually understood ML deployment patterns.
+
+## 5. Performance results
+
+The numbers tell the story:
+- **Cold start**: 12 seconds (not bad for a 300M model)
+- **Warm inference**: 0.12-0.33 seconds per embedding
+- **Cost**: ~$0.001 per request for short texts
+- **Memory sweet spot**: 2GB (4GB+ shows no improvement)
+
+Combined with BitNet for text generation, this setup creates a complete serverless AI toolkit that shines for:
+- **RAG systems**: BitNet for generation, EmbeddingGemma for retrieval
+- **Semantic search**: Document vectorization and similarity matching
+- **Prototype APIs**: Quick AI services for testing and experimentation
+
+It struggles with:
+- **Batch processing**: Linear scaling kills economics
+- **Real-time chat**: 12-second cold starts hurt UX
+- **High throughput**: Concurrent requests need full memory allocation
+
+## 6. The convergence
+
+Two trends are colliding: models are getting more efficient while serverless platforms evolve. EmbeddingGemma represents the "efficient model" side—compact, purpose-built, and CPU-friendly.
+
+On the platform side, we're seeing serverless runtimes optimize for AI workloads. When these trends meet—lightweight models and AI-aware serverless compute—deploying embeddings will be as casual as deploying a REST API.
+
+## 7. Reality check
+
+Let's be honest about the numbers:
+
+**Text length scaling**:
+- 10 characters: 0.32s
+- 99 characters: 1.05s  
+- 588 characters: 4.06s
+
+**Memory efficiency**:
+- 2GB: Optimal performance
+- 4GB+: No improvement, 2x cost
+
+**Infrastructure overhead**: 0.7-0.8 seconds of the total latency is network + AWS API processing, not model inference.
+
+## 8. Why not production
+
+While technically successful, several factors make this unsuitable for serious workloads:
+
+**Economics don't scale**: 2GB memory allocation for sporadic requests burns money. SageMaker's auto-scaling and GPU optimization provide better cost-per-embedding at volume.
+
+**Cold start penalty**: 12-second delays kill user experience for interactive applications.
+
+**Better alternatives exist**: Purpose-built ML infrastructure (SageMaker, ECS with GPUs) offers superior performance and economics for production embedding workloads.
+
+## 9. The real value
+
+This experiment's worth isn't in production deployment—it's about curiosity. What happens when you run Google's EmbeddingGemma in AWS Lambda? Can a 300M parameter embedding model really work in serverless compute? How does it perform?
+
+**Curiosity-driven insights**: How EmbeddingGemma behaves in Lambda's constraints, memory optimization patterns for embedding models, and container packaging strategies you can only discover by trying.
+
+**Learning by doing**: Understanding where EmbeddingGemma's efficiency meets Lambda's limitations, and where the serverless tax becomes prohibitive for ML workloads.
+
+**Future signals**: As embedding models get more efficient and Lambda evolves, today's experiments with EmbeddingGemma become tomorrow's possibilities.
+
+## 10. Wrapping up
+
+Running Google's EmbeddingGemma on AWS Lambda isn't about beating dedicated ML infrastructure—it's about curiosity. What if you could deploy Google's embedding model as easily as a REST API? What would EmbeddingGemma's performance look like in Lambda? How much would it cost?
+
+The question was simple: "What about embeddings on Lambda?" Sometimes the best experiments come from pure curiosity about what's possible when you combine Google's efficient embedding model with AWS's serverless compute.
+
+The complete EmbeddingGemma-on-Lambda implementation is on [GitHub](https://github.com/manu-mishra/embeddings-gemma-on-lambda). Clone it, try it, break it. See how far you can push EmbeddingGemma in Lambda before reaching for SageMaker.
+
+And if you're curious about other Google models on AWS Lambda, let's chat about what other "impossible" combinations might be worth trying.
+
+---
+
+*This project was built using vibe coding techniques with Amazon Q Developer, demonstrating how AI-assisted development can accelerate experimentation while maintaining architectural rigor.*
+
+## References
+- [Google EmbeddingGemma Model](https://huggingface.co/google/embeddinggemma-300m)
+- [EmbeddingGemma Overview](https://ai.google.dev/gemma/docs/embeddinggemma)
+- [Project Repository](https://github.com/manu-mishra/embeddings-gemma-on-lambda)
+- [Performance Benchmarks](https://github.com/manu-mishra/embeddings-gemma-on-lambda/blob/main/docs/PERFORMANCE.md)
+- [Previous BitNet Lambda Article](https://community.aws/content/2ynHjrct8JLUEN6mADtT2IYh5bR/microsoft-bitnet-1-58-bit-llms-on-aws-lambda)
+- [Vibe Coding in Vegas LinkedIn Article](https://www.linkedin.com/pulse/vibe-coding-vegas-158-bit-llm-aws-lambda-manu-mishra-s0joc/)
+- [Amazon Q Developer](https://aws.amazon.com/q/developer/)
+- [Amazon SageMaker](https://aws.amazon.com/sagemaker/)
