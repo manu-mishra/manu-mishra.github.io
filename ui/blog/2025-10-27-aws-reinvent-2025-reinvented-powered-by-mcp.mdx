@@ -1,0 +1,126 @@
+---
+slug: aws-reinvent-2025-reinvented-powered-by-mcp
+title: AWS Re:Invent 2025, Reinvented — Powered by MCP
+description: Comprehensive Model Context Protocol (MCP) server providing intelligent access to AWS re:Invent 2025 session catalog with 1,843 sessions, advanced search capabilities, and speaker discovery.
+keywords: [aws reinvent, mcp, model context protocol, conference navigation, aws sessions, speaker discovery, ai assistant, cloud computing, aws community, claude desktop]
+image: /img/blog/reinvent-2025-mcp.png
+authors:
+  name: Manu Mishra
+  title: Solutions Architect & Applied Software Engineer
+  url: https://github.com/manu-mishra
+  image_url: /img/logo.png
+tags: [aws reinvent, mcp, ai assistant, conference, cloud computing, aws community, claude desktop]
+date: 2025-10-27
+---
+
+Every year, AWS re:Invent brings together thousands of builders, leaders, and innovators to explore the future of cloud. In 2025, the catalog is bigger than ever — **1,843 sessions** across **53 areas of interest** and **19 industries**. Inspiring, yes — but also overwhelming.
+
+That's why I built the **re:Invent 2025 MCP Server**: a comprehensive Model Context Protocol server that transforms how professionals navigate AWS's flagship conference, providing intelligent access to the complete session catalog with advanced search capabilities and speaker discovery.
+
+{/* truncate */}
+
+## 🚀 Quick Start for Claude Desktop Users
+
+**Get instant access to all 1,843 re:Invent 2025 sessions in Claude Desktop:**
+
+### [📦 Download Claude Extension](https://github.com/manu-mishra/reinvent-mcp-2025/raw/main/claude/reinvent-2025-session-catalog-nodejs.mcpb)
+
+**Installation**: Just drag & drop the `.mcpb` file into Claude Desktop Extensions → Click "Install" → Start exploring!
+
+**Try asking Claude**: *"Find all AI sessions at re:Invent 2025"* or *"Show me sessions for developers about serverless"*
+
+## 🌟 What It Is
+
+The re:Invent 2025 MCP Server transforms how professionals navigate AWS's flagship conference. Built on the [Model Context Protocol](https://modelcontextprotocol.io/), this server bridges the gap between conference content and actionable insights.
+
+**Key Features:**
+- 🔍 **Universal Search**: Query across titles, abstracts, topics, and metadata
+- 👥 **Speaker Discovery**: Find speakers by name or company with session mapping
+- 🎯 **Advanced Filtering**: 13 specialized tools for precise content discovery
+- ⚡ **Performance Optimized**: Sub-second startup with &lt;10ms response times
+
+And here's something important: 🔒 **No internet required. No tracking. All requests stay between you and your AI assistant.** I don't see or log anything — it's your data, your control.
+
+## 🎯 Who It's For
+
+**💻 Developers & Architects** — Discover hands-on workshops, certification-aligned content, and service-specific sessions that accelerate skill development.
+
+**📊 Executives & Leaders** — Access strategic frameworks, industry-specific insights, and quantified business outcomes that inform decision-making.
+
+**🤝 Sales & Partners** — Research customer industries, identify co-marketing opportunities, and extract compelling value propositions from 1,843 sessions.
+
+**📅 Event Teams & Analysts** — Analyze content gaps, optimize scheduling, track speaker participation across the world's largest cloud computing conference.
+
+## ✨ Available MCP Tools
+
+### Core Discovery Tools
+- `search_sessions` - Universal session search or complete listing
+- `search_speakers` - Speaker discovery with session mapping  
+- `get_session_details` - Complete session information
+- `search_services` - AWS service-specific sessions
+
+### Specialized Filters
+- `get_sessions_by_level` - Foundational → Distinguished (5 levels)
+- `get_sessions_by_role` - Developer, Architect, Data Scientist, etc. (19 roles)
+- `get_sessions_by_industry` - Healthcare, Financial Services, Government, etc. (19 industries)
+- `get_sessions_by_topic` - AI, Security, Databases, Serverless, etc. (18 topics)
+- `get_sessions_by_area_of_interest` - Generative AI, DevOps, Cost Optimization, etc. (53 areas)
+
+## 🛠️ How to Get Started
+
+### One-Click Installation (Claude Desktop)
+[📦 Download Extension](https://github.com/manu-mishra/reinvent-mcp-2025/raw/main/claude/reinvent-2025-session-catalog-nodejs.mcpb) - Just drag & drop into Claude Desktop!
+
+### Command Line Installation
+**Node.js:**
+```bash
+npx reinvent2025mcp
+```
+
+**Test with MCP Inspector:**
+```bash
+npx @modelcontextprotocol/inspector npx reinvent2025mcp
+```
+
+### Integration with AI Assistants
+
+**Amazon Q Developer (CLI):**
+```bash
+q mcp add --name reinvent-2025 --command npx --args reinvent2025mcp
+```
+
+**Claude Desktop Manual Config:**
+```json
+{
+  "mcpServers": {
+    "reinvent-2025": {
+      "command": "npx",
+      "args": ["reinvent2025mcp"]
+    }
+  }
+}
+```
+
+## 📊 Dataset Overview
+
+**Comprehensive Coverage:**
+- **1,843 Sessions** across all re:Invent 2025 tracks
+- **53 Areas of Interest** from Generative AI to Quantum Technologies
+- **198 AWS Services** with complete service coverage
+- **19 Industries** for vertical-specific content discovery
+- **5 Difficulty Levels** from foundational to distinguished expertise
+
+## 🌍 Why This Matters
+
+re:Invent isn't just another conference — it's the epicenter of cloud innovation, where breakthrough technologies like agentic AI, quantum computing, and autonomous systems are unveiled. With sessions covering everything from foundational concepts to distinguished-level expertise, re:Invent shapes the future of technology.
+
+This MCP server ensures you don't miss the sessions that matter most to your goals, whether that's technical mastery, business transformation, or competitive advantage — all while keeping your data private with a local-first design.
+
+## ✅ Try It Today
+
+- 📦 [NPM Package](https://www.npmjs.com/package/reinvent2025mcp)
+- 📦 [PyPI Package](https://pypi.org/project/re-invent-2025-mcp/)
+- 💻 [GitHub Repository](https://github.com/manu-mishra/reinvent-mcp-2025)
+- 🔗 [Model Context Protocol](https://modelcontextprotocol.io/)
+
+I'd love your feedback, ideas, and contributions — this is built for the AWS community, and the more voices we have, the stronger it becomes.

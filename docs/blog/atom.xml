@@ -2,11 +2,101 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://manumishra.com/blog</id>
     <title>Manu Mishra Blog</title>
-    <updated>2025-09-21T00:00:00.000Z</updated>
+    <updated>2025-10-27T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://manumishra.com/blog"/>
     <subtitle>Manu Mishra Blog</subtitle>
     <icon>https://manumishra.com/img/logo.png</icon>
+    <entry>
+        <title type="html"><![CDATA[AWS Re:Invent 2025, Reinvented — Powered by MCP]]></title>
+        <id>https://manumishra.com/blog/aws-reinvent-2025-reinvented-powered-by-mcp</id>
+        <link href="https://manumishra.com/blog/aws-reinvent-2025-reinvented-powered-by-mcp"/>
+        <updated>2025-10-27T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Comprehensive Model Context Protocol (MCP) server providing intelligent access to AWS re:Invent 2025 session catalog with 1,843 sessions, advanced search capabilities, and speaker discovery.]]></summary>
+        <content type="html"><![CDATA[<p>Every year, AWS re<!-- -->:Invent<!-- --> brings together thousands of builders, leaders, and innovators to explore the future of cloud. In 2025, the catalog is bigger than ever — <strong>1,843 sessions</strong> across <strong>53 areas of interest</strong> and <strong>19 industries</strong>. Inspiring, yes — but also overwhelming.</p>
+<p>That's why I built the <strong>re<!-- -->:Invent<!-- --> 2025 MCP Server</strong>: a comprehensive Model Context Protocol server that transforms how professionals navigate AWS's flagship conference, providing intelligent access to the complete session catalog with advanced search capabilities and speaker discovery.</p>
+<!-- -->
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="-quick-start-for-claude-desktop-users">🚀 Quick Start for Claude Desktop Users<a href="https://manumishra.com/blog/aws-reinvent-2025-reinvented-powered-by-mcp#-quick-start-for-claude-desktop-users" class="hash-link" aria-label="Direct link to 🚀 Quick Start for Claude Desktop Users" title="Direct link to 🚀 Quick Start for Claude Desktop Users">​</a></h2>
+<p><strong>Get instant access to all 1,843 re<!-- -->:Invent<!-- --> 2025 sessions in Claude Desktop:</strong></p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="-download-claude-extension"><a href="https://github.com/manu-mishra/reinvent-mcp-2025/raw/main/claude/reinvent-2025-session-catalog-nodejs.mcpb" target="_blank" rel="noopener noreferrer">📦 Download Claude Extension</a><a href="https://manumishra.com/blog/aws-reinvent-2025-reinvented-powered-by-mcp#-download-claude-extension" class="hash-link" aria-label="Direct link to -download-claude-extension" title="Direct link to -download-claude-extension">​</a></h3>
+<p><strong>Installation</strong>: Just drag &amp; drop the <code>.mcpb</code> file into Claude Desktop Extensions → Click "Install" → Start exploring!</p>
+<p><strong>Try asking Claude</strong>: <em>"Find all AI sessions at re<!-- -->:Invent<!-- --> 2025"</em> or <em>"Show me sessions for developers about serverless"</em></p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="-what-it-is">🌟 What It Is<a href="https://manumishra.com/blog/aws-reinvent-2025-reinvented-powered-by-mcp#-what-it-is" class="hash-link" aria-label="Direct link to 🌟 What It Is" title="Direct link to 🌟 What It Is">​</a></h2>
+<p>The re<!-- -->:Invent<!-- --> 2025 MCP Server transforms how professionals navigate AWS's flagship conference. Built on the <a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener noreferrer">Model Context Protocol</a>, this server bridges the gap between conference content and actionable insights.</p>
+<p><strong>Key Features:</strong></p>
+<ul>
+<li>🔍 <strong>Universal Search</strong>: Query across titles, abstracts, topics, and metadata</li>
+<li>👥 <strong>Speaker Discovery</strong>: Find speakers by name or company with session mapping</li>
+<li>🎯 <strong>Advanced Filtering</strong>: 13 specialized tools for precise content discovery</li>
+<li>⚡ <strong>Performance Optimized</strong>: Sub-second startup with &lt;10ms response times</li>
+</ul>
+<p>And here's something important: 🔒 <strong>No internet required. No tracking. All requests stay between you and your AI assistant.</strong> I don't see or log anything — it's your data, your control.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="-who-its-for">🎯 Who It's For<a href="https://manumishra.com/blog/aws-reinvent-2025-reinvented-powered-by-mcp#-who-its-for" class="hash-link" aria-label="Direct link to 🎯 Who It's For" title="Direct link to 🎯 Who It's For">​</a></h2>
+<p><strong>💻 Developers &amp; Architects</strong> — Discover hands-on workshops, certification-aligned content, and service-specific sessions that accelerate skill development.</p>
+<p><strong>📊 Executives &amp; Leaders</strong> — Access strategic frameworks, industry-specific insights, and quantified business outcomes that inform decision-making.</p>
+<p><strong>🤝 Sales &amp; Partners</strong> — Research customer industries, identify co-marketing opportunities, and extract compelling value propositions from 1,843 sessions.</p>
+<p><strong>📅 Event Teams &amp; Analysts</strong> — Analyze content gaps, optimize scheduling, track speaker participation across the world's largest cloud computing conference.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="-available-mcp-tools">✨ Available MCP Tools<a href="https://manumishra.com/blog/aws-reinvent-2025-reinvented-powered-by-mcp#-available-mcp-tools" class="hash-link" aria-label="Direct link to ✨ Available MCP Tools" title="Direct link to ✨ Available MCP Tools">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="core-discovery-tools">Core Discovery Tools<a href="https://manumishra.com/blog/aws-reinvent-2025-reinvented-powered-by-mcp#core-discovery-tools" class="hash-link" aria-label="Direct link to Core Discovery Tools" title="Direct link to Core Discovery Tools">​</a></h3>
+<ul>
+<li><code>search_sessions</code> - Universal session search or complete listing</li>
+<li><code>search_speakers</code> - Speaker discovery with session mapping</li>
+<li><code>get_session_details</code> - Complete session information</li>
+<li><code>search_services</code> - AWS service-specific sessions</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="specialized-filters">Specialized Filters<a href="https://manumishra.com/blog/aws-reinvent-2025-reinvented-powered-by-mcp#specialized-filters" class="hash-link" aria-label="Direct link to Specialized Filters" title="Direct link to Specialized Filters">​</a></h3>
+<ul>
+<li><code>get_sessions_by_level</code> - Foundational → Distinguished (5 levels)</li>
+<li><code>get_sessions_by_role</code> - Developer, Architect, Data Scientist, etc. (19 roles)</li>
+<li><code>get_sessions_by_industry</code> - Healthcare, Financial Services, Government, etc. (19 industries)</li>
+<li><code>get_sessions_by_topic</code> - AI, Security, Databases, Serverless, etc. (18 topics)</li>
+<li><code>get_sessions_by_area_of_interest</code> - Generative AI, DevOps, Cost Optimization, etc. (53 areas)</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="️-how-to-get-started">🛠️ How to Get Started<a href="https://manumishra.com/blog/aws-reinvent-2025-reinvented-powered-by-mcp#%EF%B8%8F-how-to-get-started" class="hash-link" aria-label="Direct link to 🛠️ How to Get Started" title="Direct link to 🛠️ How to Get Started">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="one-click-installation-claude-desktop">One-Click Installation (Claude Desktop)<a href="https://manumishra.com/blog/aws-reinvent-2025-reinvented-powered-by-mcp#one-click-installation-claude-desktop" class="hash-link" aria-label="Direct link to One-Click Installation (Claude Desktop)" title="Direct link to One-Click Installation (Claude Desktop)">​</a></h3>
+<p><a href="https://github.com/manu-mishra/reinvent-mcp-2025/raw/main/claude/reinvent-2025-session-catalog-nodejs.mcpb" target="_blank" rel="noopener noreferrer">📦 Download Extension</a> - Just drag &amp; drop into Claude Desktop!</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="command-line-installation">Command Line Installation<a href="https://manumishra.com/blog/aws-reinvent-2025-reinvented-powered-by-mcp#command-line-installation" class="hash-link" aria-label="Direct link to Command Line Installation" title="Direct link to Command Line Installation">​</a></h3>
+<p><strong>Node.js:</strong></p>
+<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#F8F8F2;--prism-background-color:#282A36"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#F8F8F2;background-color:#282A36"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#F8F8F2"><span class="token plain">npx reinvent2025mcp</span><br></span></code></pre></div></div>
+<p><strong>Test with MCP Inspector:</strong></p>
+<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#F8F8F2;--prism-background-color:#282A36"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#F8F8F2;background-color:#282A36"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#F8F8F2"><span class="token plain">npx @modelcontextprotocol/inspector npx reinvent2025mcp</span><br></span></code></pre></div></div>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="integration-with-ai-assistants">Integration with AI Assistants<a href="https://manumishra.com/blog/aws-reinvent-2025-reinvented-powered-by-mcp#integration-with-ai-assistants" class="hash-link" aria-label="Direct link to Integration with AI Assistants" title="Direct link to Integration with AI Assistants">​</a></h3>
+<p><strong>Amazon Q Developer (CLI):</strong></p>
+<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#F8F8F2;--prism-background-color:#282A36"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#F8F8F2;background-color:#282A36"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#F8F8F2"><span class="token plain">q mcp add --name reinvent-2025 --command npx --args reinvent2025mcp</span><br></span></code></pre></div></div>
+<p><strong>Claude Desktop Manual Config:</strong></p>
+<div class="language-json codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#F8F8F2;--prism-background-color:#282A36"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-json codeBlock_bY9V thin-scrollbar" style="color:#F8F8F2;background-color:#282A36"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#F8F8F2"><span class="token punctuation" style="color:rgb(248, 248, 242)">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">  </span><span class="token property">"mcpServers"</span><span class="token operator">:</span><span class="token plain"> </span><span class="token punctuation" style="color:rgb(248, 248, 242)">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">    </span><span class="token property">"reinvent-2025"</span><span class="token operator">:</span><span class="token plain"> </span><span class="token punctuation" style="color:rgb(248, 248, 242)">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">      </span><span class="token property">"command"</span><span class="token operator">:</span><span class="token plain"> </span><span class="token string" style="color:rgb(255, 121, 198)">"npx"</span><span class="token punctuation" style="color:rgb(248, 248, 242)">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">      </span><span class="token property">"args"</span><span class="token operator">:</span><span class="token plain"> </span><span class="token punctuation" style="color:rgb(248, 248, 242)">[</span><span class="token string" style="color:rgb(255, 121, 198)">"reinvent2025mcp"</span><span class="token punctuation" style="color:rgb(248, 248, 242)">]</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">    </span><span class="token punctuation" style="color:rgb(248, 248, 242)">}</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">  </span><span class="token punctuation" style="color:rgb(248, 248, 242)">}</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain"></span><span class="token punctuation" style="color:rgb(248, 248, 242)">}</span><br></span></code></pre></div></div>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="-dataset-overview">📊 Dataset Overview<a href="https://manumishra.com/blog/aws-reinvent-2025-reinvented-powered-by-mcp#-dataset-overview" class="hash-link" aria-label="Direct link to 📊 Dataset Overview" title="Direct link to 📊 Dataset Overview">​</a></h2>
+<p><strong>Comprehensive Coverage:</strong></p>
+<ul>
+<li><strong>1,843 Sessions</strong> across all re<!-- -->:Invent<!-- --> 2025 tracks</li>
+<li><strong>53 Areas of Interest</strong> from Generative AI to Quantum Technologies</li>
+<li><strong>198 AWS Services</strong> with complete service coverage</li>
+<li><strong>19 Industries</strong> for vertical-specific content discovery</li>
+<li><strong>5 Difficulty Levels</strong> from foundational to distinguished expertise</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="-why-this-matters">🌍 Why This Matters<a href="https://manumishra.com/blog/aws-reinvent-2025-reinvented-powered-by-mcp#-why-this-matters" class="hash-link" aria-label="Direct link to 🌍 Why This Matters" title="Direct link to 🌍 Why This Matters">​</a></h2>
+<p>re<!-- -->:Invent<!-- --> isn't just another conference — it's the epicenter of cloud innovation, where breakthrough technologies like agentic AI, quantum computing, and autonomous systems are unveiled. With sessions covering everything from foundational concepts to distinguished-level expertise, re<!-- -->:Invent<!-- --> shapes the future of technology.</p>
+<p>This MCP server ensures you don't miss the sessions that matter most to your goals, whether that's technical mastery, business transformation, or competitive advantage — all while keeping your data private with a local-first design.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="-try-it-today">✅ Try It Today<a href="https://manumishra.com/blog/aws-reinvent-2025-reinvented-powered-by-mcp#-try-it-today" class="hash-link" aria-label="Direct link to ✅ Try It Today" title="Direct link to ✅ Try It Today">​</a></h2>
+<ul>
+<li>📦 <a href="https://www.npmjs.com/package/reinvent2025mcp" target="_blank" rel="noopener noreferrer">NPM Package</a></li>
+<li>📦 <a href="https://pypi.org/project/re-invent-2025-mcp/" target="_blank" rel="noopener noreferrer">PyPI Package</a></li>
+<li>💻 <a href="https://github.com/manu-mishra/reinvent-mcp-2025" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+<li>🔗 <a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener noreferrer">Model Context Protocol</a></li>
+</ul>
+<p>I'd love your feedback, ideas, and contributions — this is built for the AWS community, and the more voices we have, the stronger it becomes.</p>]]></content>
+        <author>
+            <name>Manu Mishra</name>
+            <uri>https://github.com/manu-mishra</uri>
+        </author>
+        <category label="aws reinvent" term="aws reinvent"/>
+        <category label="mcp" term="mcp"/>
+        <category label="ai assistant" term="ai assistant"/>
+        <category label="conference" term="conference"/>
+        <category label="cloud computing" term="cloud computing"/>
+        <category label="aws community" term="aws community"/>
+        <category label="claude desktop" term="claude desktop"/>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Google's EmbeddingGemma on AWS Lambda - A Curiosity-Driven Experiment]]></title>
         <id>https://manumishra.com/blog/embeddings-gemma-on-lambda</id>
