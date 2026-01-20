@@ -93,7 +93,16 @@ export default function About(): JSX.Element {
               <div className={styles.certificationsSection}>
                 <h3>Certifications</h3>
                 <ul>
-                  <li>AWS Certified Solutions Architect</li>
+                  <li>AWS Certified AI Practitioner</li>
+                  <li>AWS Certified DevOps Engineer - Professional</li>
+                  <li>AWS Certified Machine Learning Engineer - Associate</li>
+                  <li>AWS Certified SysOps Administrator - Associate</li>
+                  <li>AWS Certified Machine Learning - Specialty</li>
+                  <li>AWS Certified Data Analytics - Specialty</li>
+                  <li>AWS Certified Solutions Architect - Professional</li>
+                  <li>AWS Certified Developer - Associate</li>
+                  <li>AWS Certified Cloud Practitioner</li>
+                  <li>AWS Certified Solutions Architect - Associate</li>
                   <li>Microsoft Certified Solution Expert (MCSE)</li>
                   <li>Azure Solution Architect (70-532, 70-533, 70-534)</li>
                   <li>Azure Big Data and Data Platform (70-473, 70-475)</li>

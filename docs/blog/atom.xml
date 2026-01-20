@@ -2,11 +2,305 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://manumishra.com/blog</id>
     <title>Manu Mishra Blog</title>
-    <updated>2025-10-27T00:00:00.000Z</updated>
+    <updated>2026-01-19T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://manumishra.com/blog"/>
     <subtitle>Manu Mishra Blog</subtitle>
     <icon>https://manumishra.com/img/logo.png</icon>
+    <entry>
+        <title type="html"><![CDATA[Build Recursive Language Models on AWS in Minutes with Strands Agents and Amazon Bedrock AgentCore]]></title>
+        <id>https://manumishra.com/blog/recursive-language-models-strands-agentcore</id>
+        <link href="https://manumishra.com/blog/recursive-language-models-strands-agentcore"/>
+        <updated>2026-01-19T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Learn how to implement Recursive Language Models (RLMs) from MIT CSAIL research using Strands Agents and Amazon Bedrock AgentCore. Scale to inputs 100x beyond context windows with minimal code.]]></summary>
+        <content type="html"><![CDATA[<p><img decoding="async" loading="lazy" alt="RLM on AWS Architecture" src="https://manumishra.com/assets/images/rlm-on-aws-e13ef244388c42150924e6a3424bf966.png" width="1536" height="1024" class="img_ev3q"></p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="introduction">Introduction<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#introduction" class="hash-link" aria-label="Direct link to Introduction" title="Direct link to Introduction">​</a></h2>
+<p>Modern large language models face a fundamental limitation: context windows. While frontier models now reach 1 million tokens (Nova Premier, Claude Sonnet 4.5), workloads analyzing entire codebases, document collections, or multi-hour conversations can easily exceed 10 million tokens—far beyond any single model's capacity.</p>
+<p>This post demonstrates <strong>Recursive Language Models (RLMs)</strong>, an inference strategy from <a href="https://arxiv.org/abs/2512.24601" target="_blank" rel="noopener noreferrer">MIT CSAIL research</a> that enables scaling to inputs far beyond context windows. What makes this implementation special: <strong>Strands Agents</strong> and <strong>Amazon Bedrock AgentCore</strong> reduce what could be weeks of glue code and deployment work to just a few hours of development.</p>
+<!-- -->
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="what-are-recursive-language-models">What Are Recursive Language Models?<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#what-are-recursive-language-models" class="hash-link" aria-label="Direct link to What Are Recursive Language Models?" title="Direct link to What Are Recursive Language Models?">​</a></h2>
+<p>Traditional approaches to long contexts use summarization or RAG. These struggle with information-dense tasks requiring examination of the full input.</p>
+<p><strong>Recursive Language Models</strong> are an inference pattern for handling inputs far larger than any model context window. Instead of stuffing the entire dataset into the prompt, the full context lives outside the model as an external context buffer (a Python variable). The model then generates code to search, filter, and chunk the context, and uses recursive sub-calls on only the relevant pieces. Finally, results are aggregated through deterministic code rather than attention over the full input.</p>
+<p>This approach is especially effective for tasks like "find all occurrences," "count all items," or "extract all endpoints," where missing even one chunk causes incorrect results.</p>
+<p><strong>In our implementation, recursion depth is 1:</strong> the root model uses sub-calls to smaller models, and aggregation happens in code (not through nested RLMs).</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="rlm-in-action-minimal-pattern">RLM in Action: Minimal Pattern<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#rlm-in-action-minimal-pattern" class="hash-link" aria-label="Direct link to RLM in Action: Minimal Pattern" title="Direct link to RLM in Action: Minimal Pattern">​</a></h3>
+<div class="language-python codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#F8F8F2;--prism-background-color:#282A36"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-python codeBlock_bY9V thin-scrollbar" style="color:#F8F8F2;background-color:#282A36"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#F8F8F2"><span class="token comment" style="color:rgb(98, 114, 164)"># Context lives outside the model as a Python variable</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">context </span><span class="token operator">=</span><span class="token plain"> load_large_codebase</span><span class="token punctuation" style="color:rgb(248, 248, 242)">(</span><span class="token punctuation" style="color:rgb(248, 248, 242)">)</span><span class="token plain">  </span><span class="token comment" style="color:rgb(98, 114, 164)"># can exceed model context windows by 100x+</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain"></span><span class="token comment" style="color:rgb(98, 114, 164)"># Model writes code to probe and filter</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">api_files </span><span class="token operator">=</span><span class="token plain"> search</span><span class="token punctuation" style="color:rgb(248, 248, 242)">(</span><span class="token plain">context</span><span class="token punctuation" style="color:rgb(248, 248, 242)">,</span><span class="token plain"> pattern</span><span class="token operator">=</span><span class="token string" style="color:rgb(255, 121, 198)">r"@app\.route"</span><span class="token punctuation" style="color:rgb(248, 248, 242)">)</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain"></span><span class="token comment" style="color:rgb(98, 114, 164)"># Recursive sub-calls on filtered chunks</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">endpoints </span><span class="token operator">=</span><span class="token plain"> </span><span class="token punctuation" style="color:rgb(248, 248, 242)">[</span><span class="token punctuation" style="color:rgb(248, 248, 242)">]</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain"></span><span class="token keyword" style="color:rgb(189, 147, 249);font-style:italic">for</span><span class="token plain"> </span><span class="token builtin" style="color:rgb(189, 147, 249)">file</span><span class="token plain"> </span><span class="token keyword" style="color:rgb(189, 147, 249);font-style:italic">in</span><span class="token plain"> api_files</span><span class="token punctuation" style="color:rgb(248, 248, 242)">:</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">    result </span><span class="token operator">=</span><span class="token plain"> llm_query</span><span class="token punctuation" style="color:rgb(248, 248, 242)">(</span><span class="token string-interpolation string" style="color:rgb(255, 121, 198)">f"Extract endpoint info from:\n</span><span class="token string-interpolation interpolation punctuation" style="color:rgb(248, 248, 242)">{</span><span class="token string-interpolation interpolation builtin" style="color:rgb(189, 147, 249)">file</span><span class="token string-interpolation interpolation punctuation" style="color:rgb(248, 248, 242)">}</span><span class="token string-interpolation string" style="color:rgb(255, 121, 198)">"</span><span class="token punctuation" style="color:rgb(248, 248, 242)">)</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">    endpoints</span><span class="token punctuation" style="color:rgb(248, 248, 242)">.</span><span class="token plain">append</span><span class="token punctuation" style="color:rgb(248, 248, 242)">(</span><span class="token plain">result</span><span class="token punctuation" style="color:rgb(248, 248, 242)">)</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain"></span><span class="token comment" style="color:rgb(98, 114, 164)"># Deterministic aggregation</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain"></span><span class="token keyword" style="color:rgb(189, 147, 249);font-style:italic">return</span><span class="token plain"> aggregate</span><span class="token punctuation" style="color:rgb(248, 248, 242)">(</span><span class="token plain">endpoints</span><span class="token punctuation" style="color:rgb(248, 248, 242)">)</span><br></span></code></pre></div></div>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="rlm-vs-rag-when-to-use-each">RLM vs RAG: When to Use Each<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#rlm-vs-rag-when-to-use-each" class="hash-link" aria-label="Direct link to RLM vs RAG: When to Use Each" title="Direct link to RLM vs RAG: When to Use Each">​</a></h3>
+<table><thead><tr><th>Scenario</th><th>RAG</th><th>RLM</th></tr></thead><tbody><tr><td><strong>Known query upfront</strong></td><td>✅ Efficient retrieval</td><td>⚠️ Overkill</td></tr><tr><td><strong>"Find all" / "Count all"</strong></td><td>❌ May miss chunks</td><td>✅ Exhaustive coverage</td></tr><tr><td><strong>Relevance-based QA</strong></td><td>✅ Fast, targeted</td><td>⚠️ Slower</td></tr><tr><td><strong>Multi-step reasoning over full context</strong></td><td>❌ Limited by retrieval</td><td>✅ Code-driven exploration</td></tr></tbody></table>
+<p><strong>RAG struggles when:</strong> you don't know what to retrieve upfront, when correctness depends on coverage (not relevance), or when you need "verify-all" guarantees.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="research-results">Research Results<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#research-results" class="hash-link" aria-label="Direct link to Research Results" title="Direct link to Research Results">​</a></h3>
+<p>The <a href="https://arxiv.org/abs/2512.24601" target="_blank" rel="noopener noreferrer">MIT paper</a> demonstrates RLMs:</p>
+<ul>
+<li>Successfully handle inputs <strong>up to 100x beyond model context windows</strong></li>
+<li>Outperform base LLMs and common long-context scaffolds on long-context retrieval benchmarks</li>
+<li>Scale costs with task complexity, not input size</li>
+</ul>
+<p><strong>Note</strong>: Performance examples in this post are illustrative. Actual results vary by model, task complexity, and context structure.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="why-strands--agentcore-makes-this-easy">Why Strands + AgentCore Makes This Easy<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#why-strands--agentcore-makes-this-easy" class="hash-link" aria-label="Direct link to Why Strands + AgentCore Makes This Easy" title="Direct link to Why Strands + AgentCore Makes This Easy">​</a></h2>
+<p>Building RLMs from scratch requires weeks of work: agent loop orchestration, REPL sandboxing, model invocation logic, deployment infrastructure, scaling configuration, and observability. <strong>Strands Agents</strong> and <strong>Amazon Bedrock AgentCore</strong> eliminate this complexity.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="architecture-overview">Architecture Overview<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#architecture-overview" class="hash-link" aria-label="Direct link to Architecture Overview" title="Direct link to Architecture Overview">​</a></h3>
+<p><img decoding="async" loading="lazy" alt="RLM on AWS Architecture" src="https://manumishra.com/assets/images/rlm-on-aws-e13ef244388c42150924e6a3424bf966.png" width="1536" height="1024" class="img_ev3q">
+<em>RLM implementation using Strands Agents and Amazon Bedrock AgentCore</em></p>
+<p>The architecture shows the complete flow from user query to final answer:</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="strands-agents-orchestration-made-simple">Strands Agents: Orchestration Made Simple<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#strands-agents-orchestration-made-simple" class="hash-link" aria-label="Direct link to Strands Agents: Orchestration Made Simple" title="Direct link to Strands Agents: Orchestration Made Simple">​</a></h3>
+<p><a href="https://github.com/awslabs/strands-agents" target="_blank" rel="noopener noreferrer">Strands Agents</a> is an open-source Python SDK for building AI agents. It provides:</p>
+<ul>
+<li><strong>Agent loop orchestration</strong> - Handles iterative LLM → code execution → LLM cycles automatically</li>
+<li><strong>Tool calling</strong> - Built-in Python REPL tool with output management</li>
+<li><strong>Model integration</strong> - Native <a href="https://aws.amazon.com/bedrock/" target="_blank" rel="noopener noreferrer">Amazon Bedrock</a> support with streaming</li>
+<li><strong>State management</strong> - Tracks conversation history and execution context</li>
+</ul>
+<p><strong>Impact:</strong> What would take weeks of infrastructure code becomes ~200 lines.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="amazon-bedrock-agentcore-deployment-without-the-pain">Amazon Bedrock AgentCore: Deployment Without the Pain<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#amazon-bedrock-agentcore-deployment-without-the-pain" class="hash-link" aria-label="Direct link to Amazon Bedrock AgentCore: Deployment Without the Pain" title="Direct link to Amazon Bedrock AgentCore: Deployment Without the Pain">​</a></h3>
+<p><a href="https://aws.amazon.com/bedrock/agentcore/" target="_blank" rel="noopener noreferrer">Amazon Bedrock AgentCore</a> provides serverless runtime for AI agents:</p>
+<ul>
+<li><strong>Long-running execution</strong> - 15-minute idle timeout when not processing (not a max runtime limit)</li>
+<li><strong>Automatic scaling</strong> - Handles concurrent requests without capacity planning</li>
+<li><strong>Session isolation</strong> - Each invocation gets isolated environment</li>
+<li><strong>ARM64 optimization</strong> - <a href="https://aws.amazon.com/ec2/graviton/" target="_blank" rel="noopener noreferrer">AWS Graviton</a> processors for cost efficiency</li>
+<li><strong>Built-in observability</strong> - <a href="https://aws.amazon.com/cloudwatch/" target="_blank" rel="noopener noreferrer">Amazon CloudWatch</a> logs and metrics</li>
+</ul>
+<p><strong>Impact:</strong> Deployment is a standard CDK workflow, and invocation happens via the AgentCore Runtime API. RLM experiments that take 5+ minutes run without timeout issues. Safety limits (max sub-calls, output buffer) prevent runaway execution.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="cost-intuition">Cost Intuition<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#cost-intuition" class="hash-link" aria-label="Direct link to Cost Intuition" title="Direct link to Cost Intuition">​</a></h3>
+<p>In practice, the root model spends tokens on planning and code generation, while sub-calls only process filtered slices of the context. This makes total token usage closer to "work performed" rather than "data size"—often landing closer to planning plus the slices you inspect (for example, tens to a few hundred thousand tokens for many workloads, depending on how much content is actually analyzed).</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="amazon-bedrock-model-choice">Amazon Bedrock: Model Choice<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#amazon-bedrock-model-choice" class="hash-link" aria-label="Direct link to Amazon Bedrock: Model Choice" title="Direct link to Amazon Bedrock: Model Choice">​</a></h3>
+<p><a href="https://aws.amazon.com/bedrock/" target="_blank" rel="noopener noreferrer">Amazon Bedrock</a> is a fully managed service that offers a choice of high-performing foundation models from leading AI companies like AI21 Labs, Anthropic, Cohere, Meta, Mistral AI, OpenAI, and Amazon through a single API. This model choice is critical for RLM implementations—different tasks benefit from different model strengths in reasoning, code generation, and cost efficiency.</p>
+<p>Following the MIT paper's two-model approach, we use a root model for orchestration and a smaller model for sub-calls:</p>
+<p><strong>Supported Root Models:</strong></p>
+<ul>
+<li><strong>Amazon Nova Pro</strong> - 300K context, strong reasoning</li>
+<li><strong>Claude 4.5 Sonnet</strong> - 200K context (1M beta), excellent code generation</li>
+<li><strong>Claude 4.5 Opus</strong> - 200K context, frontier performance</li>
+<li><strong>GPT-OSS 120B</strong> - 128K context, open-source option</li>
+</ul>
+<p><strong>Supported Sub-Call Models:</strong></p>
+<ul>
+<li><strong>Amazon Nova Micro</strong> - 128K context, optimized for speed</li>
+<li><strong>Claude 4.5 Haiku</strong> - Fast, cost-efficient</li>
+<li><strong>Amazon Nova Lite</strong> - Balanced performance</li>
+</ul>
+<p>This two-tier approach balances capability and efficiency: a powerful model for strategy, a fast model for execution. Our implementation is model-agnostic—swap models via configuration without code changes.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="how-it-works">How It Works<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#how-it-works" class="hash-link" aria-label="Direct link to How It Works" title="Direct link to How It Works">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="repl-environment">REPL Environment<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#repl-environment" class="hash-link" aria-label="Direct link to REPL Environment" title="Direct link to REPL Environment">​</a></h3>
+<p>The core innovation is loading the entire input context as an external context buffer (Python variable) accessible to the LLM. The environment provides:</p>
+<ul>
+<li><code>context</code> variable containing the full input</li>
+<li><code>llm_query(prompt)</code> function for recursive sub-LM calls</li>
+<li>Standard Python libraries for text processing (regex, string manipulation)</li>
+<li>Isolated execution preventing access to system resources</li>
+</ul>
+<p>The LLM writes Python code to interact with this environment, executing operations like regex searches, chunking, and filtering without loading the entire context into its neural network.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="system-prompt-design">System Prompt Design<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#system-prompt-design" class="hash-link" aria-label="Direct link to System Prompt Design" title="Direct link to System Prompt Design">​</a></h3>
+<p>Based on <a href="https://arxiv.org/abs/2512.24601" target="_blank" rel="noopener noreferrer">MIT paper Appendix D</a>, the system prompt is minimal and example-driven:</p>
+<p><strong>Core Instructions:</strong></p>
+<ul>
+<li>Context is available as a Python variable in REPL, not in the prompt</li>
+<li>Use code to probe, filter, and chunk the context</li>
+<li>Make recursive <code>llm_query()</code> calls on filtered chunks</li>
+<li>Return final answer directly (no special format required)</li>
+</ul>
+<p><strong>Example Strategies:</strong></p>
+<ul>
+<li>Regex filtering: Search for keywords without reading entire context</li>
+<li>Uniform chunking: Split into equal-sized pieces for parallel processing</li>
+<li>Semantic chunking: Use document structure (headers, file boundaries)</li>
+</ul>
+<p><strong>Example Pattern:</strong></p>
+<div class="language-python codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#F8F8F2;--prism-background-color:#282A36"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-python codeBlock_bY9V thin-scrollbar" style="color:#F8F8F2;background-color:#282A36"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#F8F8F2"><span class="token comment" style="color:rgb(98, 114, 164)"># Search in chunks</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">chunk_size </span><span class="token operator">=</span><span class="token plain"> </span><span class="token number">50000</span><span class="token plain">  </span><span class="token comment" style="color:rgb(98, 114, 164)"># ~12.5K tokens</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain"></span><span class="token keyword" style="color:rgb(189, 147, 249);font-style:italic">for</span><span class="token plain"> i </span><span class="token keyword" style="color:rgb(189, 147, 249);font-style:italic">in</span><span class="token plain"> </span><span class="token builtin" style="color:rgb(189, 147, 249)">range</span><span class="token punctuation" style="color:rgb(248, 248, 242)">(</span><span class="token number">0</span><span class="token punctuation" style="color:rgb(248, 248, 242)">,</span><span class="token plain"> </span><span class="token builtin" style="color:rgb(189, 147, 249)">len</span><span class="token punctuation" style="color:rgb(248, 248, 242)">(</span><span class="token plain">context</span><span class="token punctuation" style="color:rgb(248, 248, 242)">)</span><span class="token punctuation" style="color:rgb(248, 248, 242)">,</span><span class="token plain"> chunk_size</span><span class="token punctuation" style="color:rgb(248, 248, 242)">)</span><span class="token punctuation" style="color:rgb(248, 248, 242)">:</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">    chunk </span><span class="token operator">=</span><span class="token plain"> context</span><span class="token punctuation" style="color:rgb(248, 248, 242)">[</span><span class="token plain">i</span><span class="token punctuation" style="color:rgb(248, 248, 242)">:</span><span class="token plain">i</span><span class="token operator">+</span><span class="token plain">chunk_size</span><span class="token punctuation" style="color:rgb(248, 248, 242)">]</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">    result </span><span class="token operator">=</span><span class="token plain"> llm_query</span><span class="token punctuation" style="color:rgb(248, 248, 242)">(</span><span class="token string-interpolation string" style="color:rgb(255, 121, 198)">f"Find the magic number in: </span><span class="token string-interpolation interpolation punctuation" style="color:rgb(248, 248, 242)">{</span><span class="token string-interpolation interpolation">chunk</span><span class="token string-interpolation interpolation punctuation" style="color:rgb(248, 248, 242)">}</span><span class="token string-interpolation string" style="color:rgb(255, 121, 198)">"</span><span class="token punctuation" style="color:rgb(248, 248, 242)">)</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">    </span><span class="token keyword" style="color:rgb(189, 147, 249);font-style:italic">print</span><span class="token punctuation" style="color:rgb(248, 248, 242)">(</span><span class="token plain">result</span><span class="token punctuation" style="color:rgb(248, 248, 242)">)</span><br></span></code></pre></div></div>
+<p>The prompt avoids prescriptive "ALWAYS/NEVER" rules, letting models develop their own strategies.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="agent-loop">Agent Loop<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#agent-loop" class="hash-link" aria-label="Direct link to Agent Loop" title="Direct link to Agent Loop">​</a></h3>
+<p>The Strands Agent orchestrates iterative REPL interaction:</p>
+<ol>
+<li>Root LM receives query and context metadata (length, structure)</li>
+<li>Root LM generates Python code to execute in REPL</li>
+<li>Code executes, output returned (truncated to prevent overflow)</li>
+<li>Root LM sees output, decides to continue or return answer</li>
+<li>Loop continues until answer provided or timeout</li>
+</ol>
+<p>This iterative process allows the model to refine its approach based on execution feedback.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="asynchronous-processing">Asynchronous Processing<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#asynchronous-processing" class="hash-link" aria-label="Direct link to Asynchronous Processing" title="Direct link to Asynchronous Processing">​</a></h3>
+<p>All experiments run asynchronously by default:</p>
+<ul>
+<li>Immediate response with task ID and session ID</li>
+<li>Client polls for results (no timeout issues)</li>
+<li>Tasks can run for minutes or hours</li>
+<li>Results automatically saved to <a href="https://aws.amazon.com/s3/" target="_blank" rel="noopener noreferrer">Amazon S3</a> with full metadata</li>
+<li>15-minute idle timeout only applies when NOT processing</li>
+</ul>
+<p>This enables long-running RLM tasks without connection timeouts.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="recursive-sub-calls">Recursive Sub-Calls<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#recursive-sub-calls" class="hash-link" aria-label="Direct link to Recursive Sub-Calls" title="Direct link to Recursive Sub-Calls">​</a></h3>
+<p>The <code>llm_query()</code> function enables decomposition:</p>
+<ul>
+<li>Sub-calls use smaller model (Amazon Nova Micro) with smaller context</li>
+<li>Each sub-call is independent (no shared state except via code variables)</li>
+<li>Sub-calls can be batched in code (process multiple chunks in loop)</li>
+<li>Results stored in Python variables for aggregation</li>
+</ul>
+<p>The paper uses max recursion depth of 1 (sub-calls are base LLMs, not RLMs).</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="deployment">Deployment<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#deployment" class="hash-link" aria-label="Direct link to Deployment" title="Direct link to Deployment">​</a></h3>
+<p><a href="https://aws.amazon.com/cdk/" target="_blank" rel="noopener noreferrer">AWS CDK</a> deploys the RLM agent to AgentCore Runtime:</p>
+<ul>
+<li>Build ARM64 Docker image with Strands Agent code</li>
+<li>Create IAM role with Bedrock, S3, and CloudWatch permissions</li>
+<li>Deploy datasets (TREC, BrowseComp+, CodeQA) to S3 bucket</li>
+<li>Configure CloudWatch log group for traces</li>
+<li>Deploy AgentCore Runtime with container image</li>
+</ul>
+<p>AgentCore handles scaling, versioning, and observability automatically. Datasets are uploaded during <code>cdk deploy</code> and downloaded by the runtime on-demand.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="example-analyzing-large-codebases">Example: Analyzing Large Codebases<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#example-analyzing-large-codebases" class="hash-link" aria-label="Direct link to Example: Analyzing Large Codebases" title="Direct link to Example: Analyzing Large Codebases">​</a></h2>
+<p><strong>Task:</strong> Identify all API endpoints and their authentication requirements in a codebase with hundreds of files.</p>
+<p><strong>Traditional Approach Limitations:</strong></p>
+<ul>
+<li>Direct LLM call: May exceed context window</li>
+<li>RAG: May miss endpoints, requires good chunking strategy upfront</li>
+<li>Manual analysis: Time-consuming, error-prone</li>
+</ul>
+<p><strong>RLM Approach:</strong></p>
+<ol>
+<li><strong>Probe:</strong> Check total size, identify file boundaries</li>
+<li><strong>Filter:</strong> Use regex to find files with route decorators (<code>@app.route</code>, <code>@api.route</code>)</li>
+<li><strong>Analyze:</strong> Make sub-LM calls on each API file to extract endpoint details</li>
+<li><strong>Aggregate:</strong> Combine results into structured summary</li>
+</ol>
+<p><strong>Outcome:</strong></p>
+<ul>
+<li>Processes codebases beyond single model context limits</li>
+<li>Identifies all API endpoints systematically</li>
+<li>Extracts authentication requirements for each</li>
+<li>Completes in minutes with minimal sub-calls</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="benchmarks-and-findings">Benchmarks and Findings<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#benchmarks-and-findings" class="hash-link" aria-label="Direct link to Benchmarks and Findings" title="Direct link to Benchmarks and Findings">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="performance-on-long-context-tasks">Performance on Long-Context Tasks<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#performance-on-long-context-tasks" class="hash-link" aria-label="Direct link to Performance on Long-Context Tasks" title="Direct link to Performance on Long-Context Tasks">​</a></h3>
+<p>We evaluated RLM on benchmarks using real-world datasets (TREC, Tevatron BrowseComp+, LongBench-v2) deployed to S3.</p>
+<table><thead><tr><th>Test</th><th>Context Size</th><th>Task</th><th>Dataset Source</th></tr></thead><tbody><tr><td>OOLONG</td><td>5,452 TREC entries</td><td>Count label frequencies</td><td>TREC coarse dataset</td></tr><tr><td>OOLONG-Pairs</td><td>5,452 TREC entries</td><td>Find HUM/LOC pairs</td><td>TREC coarse dataset</td></tr><tr><td>BrowseComp-1K</td><td>1,000 documents</td><td>Answer research query</td><td>Tevatron BrowseComp+</td></tr><tr><td>CodeQA</td><td>Multi-file repos</td><td>Multi-choice reasoning</td><td>LongBench-v2 Code</td></tr></tbody></table>
+<p><strong>Key Findings:</strong></p>
+<p><strong>Accuracy for Retrieval Tasks:</strong> Code-based counting and searching reduces hallucinations for tasks requiring exact matches. Direct model calls often produce inconsistent results on the same input.</p>
+<p><strong>Real Datasets:</strong> All benchmarks use production datasets (~216MB total) deployed to S3 and loaded at runtime, simulating real-world information retrieval scenarios.</p>
+<p><strong>Async Execution:</strong> All tests run asynchronously with results saved to S3, enabling long-running tasks without timeout issues.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="emergent-behaviors">Emergent Behaviors<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#emergent-behaviors" class="hash-link" aria-label="Direct link to Emergent Behaviors" title="Direct link to Emergent Behaviors">​</a></h3>
+<p>RLM trajectories showed interesting patterns:</p>
+<ul>
+<li><strong>Regex filtering:</strong> Models searched for keywords without reading entire context</li>
+<li><strong>Adaptive chunking:</strong> Adjusted chunk sizes based on task complexity</li>
+<li><strong>Answer verification:</strong> Made additional sub-calls to validate results</li>
+<li><strong>Strategic decisions:</strong> Chose between "process all" vs "filter then process" strategies</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="limitations">Limitations<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#limitations" class="hash-link" aria-label="Direct link to Limitations" title="Direct link to Limitations">​</a></h3>
+<ol>
+<li><strong>Async-first design:</strong> All experiments run asynchronously; synchronous mode available but not recommended for long tasks</li>
+<li><strong>Model-specific behavior:</strong> Different models show varying chunking strategies and sub-call patterns</li>
+<li><strong>Sub-call limits:</strong> Max 50 sub-calls prevents runaway execution but may limit very complex tasks</li>
+<li><strong>Debugging complexity:</strong> Full trajectory examination needed via CloudWatch logs</li>
+<li><strong>Dataset size:</strong> Real datasets (TREC, BrowseComp+, CodeQA) are large files (~216MB total) deployed to S3</li>
+</ol>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="when-to-use-rlms">When to Use RLMs<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#when-to-use-rlms" class="hash-link" aria-label="Direct link to When to Use RLMs" title="Direct link to When to Use RLMs">​</a></h2>
+<p><strong>Ideal for:</strong></p>
+<ul>
+<li>Information-dense aggregation across entire datasets</li>
+<li>Large codebase analysis (patterns, security, dependencies)</li>
+<li>Multi-document reasoning requiring synthesis</li>
+<li>Contexts beyond model limits</li>
+</ul>
+<p><strong>Use alternatives for:</strong></p>
+<ul>
+<li>Single-document QA within context window (direct calls)</li>
+<li>Sparse retrieval (RAG more efficient)</li>
+<li>Real-time requirements (RLM takes seconds to minutes)</li>
+<li>Simple extraction (regex/parsing sufficient)</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="observability">Observability<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#observability" class="hash-link" aria-label="Direct link to Observability" title="Direct link to Observability">​</a></h2>
+<p>AgentCore provides CloudWatch integration for monitoring RLM trajectories:</p>
+<p><strong>Enable Transaction Search:</strong>
+One-time setup to send X-Ray traces to CloudWatch Logs for GenAI Observability dashboard.</p>
+<p><strong>View Traces:</strong>
+CloudWatch → GenAI Observability shows:</p>
+<ul>
+<li>Complete RLM trajectories (each REPL iteration)</li>
+<li>Sub-LM call patterns (count, timing, token usage)</li>
+<li>Token efficiency (processed vs. context size)</li>
+<li>Execution time breakdown</li>
+</ul>
+<p><strong>Key Metrics:</strong></p>
+<ul>
+<li>Trajectory length: Number of REPL iterations (target: &lt;20)</li>
+<li>Sub-call count: Recursive invocations (target: &lt;30)</li>
+<li>Token efficiency: % of context actually processed</li>
+<li>Success rate: FINAL() vs. timeouts</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="best-practices">Best Practices<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#best-practices" class="hash-link" aria-label="Direct link to Best Practices" title="Direct link to Best Practices">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="system-prompt-design-1">System Prompt Design<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#system-prompt-design-1" class="hash-link" aria-label="Direct link to System Prompt Design" title="Direct link to System Prompt Design">​</a></h3>
+<ul>
+<li>Keep it minimal and example-driven (following MIT paper)</li>
+<li>Show chunking strategies, don't prescribe them</li>
+<li>Let models develop their own approaches</li>
+<li>Emphasize <code>print()</code> for code outputs</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="context-generation">Context Generation<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#context-generation" class="hash-link" aria-label="Direct link to Context Generation" title="Direct link to Context Generation">​</a></h3>
+<ul>
+<li>Real benchmarks: Deploy production datasets (TREC, BrowseComp+, CodeQA) to S3 (~216MB total)</li>
+<li>Runtime downloads datasets on-demand from S3</li>
+<li>Makes benchmarks representative of real-world scenarios</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="safety">Safety<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#safety" class="hash-link" aria-label="Direct link to Safety" title="Direct link to Safety">​</a></h3>
+<ul>
+<li>Isolate REPL execution (no file system access)</li>
+<li>Limit output buffer (last 100 lines)</li>
+<li>Set max recursion depth (depth=1)</li>
+<li>Max sub-calls limit (50 in our implementation)</li>
+</ul>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="error-handling">Error Handling<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#error-handling" class="hash-link" aria-label="Direct link to Error Handling" title="Direct link to Error Handling">​</a></h3>
+<ul>
+<li>Return exceptions to root model</li>
+<li>Retry transient Bedrock errors</li>
+<li>Use async mode for long-running tasks</li>
+<li>Log all trajectories to CloudWatch</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="getting-started">Getting Started<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#getting-started" class="hash-link" aria-label="Direct link to Getting Started" title="Direct link to Getting Started">​</a></h2>
+<p>The complete implementation is available on GitHub with interactive CLI, deployment automation, and benchmark suite.</p>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="quick-start">Quick Start<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#quick-start" class="hash-link" aria-label="Direct link to Quick Start" title="Direct link to Quick Start">​</a></h3>
+<div class="language-bash codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#F8F8F2;--prism-background-color:#282A36"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-bash codeBlock_bY9V thin-scrollbar" style="color:#F8F8F2;background-color:#282A36"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#F8F8F2"><span class="token plain"># Clone repository</span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">git clone https://github.com/manu-mishra/RLMWithStrands</span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">cd RLMWithStrands</span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain"># Deploy to AWS</span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">cd infra</span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">cdk deploy</span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain" style="display:inline-block"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain"># Run benchmarks</span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">python runexperiments</span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain"># Interactive menu:</span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain"># 1. Run Benchmarks → Async (default) → Select model → Run All</span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain"># 2. Results saved to S3 automatically</span><br></span></code></pre></div></div>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="future-directions">Future Directions<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#future-directions" class="hash-link" aria-label="Direct link to Future Directions" title="Direct link to Future Directions">​</a></h2>
+<ul>
+<li><strong>Deeper recursion:</strong> Allow sub-RLMs (depth=2+) for hierarchical decomposition</li>
+<li><strong>Parallel sub-calls:</strong> Execute multiple chunks simultaneously to reduce latency</li>
+<li><strong>Multi-modal RLMs:</strong> Extend to images, audio, video processing</li>
+<li><strong>Fine-tuned models:</strong> Train on RLM trajectories to improve chunking efficiency</li>
+<li><strong>Streaming results:</strong> Return partial answers as they're computed</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="conclusion">Conclusion<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#conclusion" class="hash-link" aria-label="Direct link to Conclusion" title="Direct link to Conclusion">​</a></h2>
+<p>Recursive Language Models (RLMs) enable processing inputs far beyond model context windows by treating the dataset as an external context buffer and using code to probe, filter, and recursively analyze only the relevant parts. By combining Strands Agents (agent loop + REPL orchestration) with Amazon Bedrock AgentCore (serverless runtime + observability), you can go from research idea to working implementation in hours instead of weeks.</p>
+<p>This approach is especially useful for "find all / count all / verify all" workloads such as large codebase analysis, multi-document synthesis, and long-horizon agent workflows—where traditional long-context prompting or retrieval-only strategies can miss critical details.</p>
+<p><strong>Key Benefits:</strong></p>
+<ul>
+<li><strong>Model choice</strong> - Root + sub-call model flexibility (Nova, Claude, GPT-OSS)</li>
+<li><strong>Serverless runtime</strong> - AgentCore handles scaling and deployment</li>
+<li><strong>Observability</strong> - CloudWatch GenAI dashboard with full trajectories</li>
+<li><strong>Async execution + safety limits</strong> - Long-running tasks with guardrails</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="resources">Resources<a href="https://manumishra.com/blog/recursive-language-models-strands-agentcore#resources" class="hash-link" aria-label="Direct link to Resources" title="Direct link to Resources">​</a></h2>
+<ul>
+<li><strong>GitHub</strong>: <a href="https://github.com/manu-mishra/RLMWithStrands" target="_blank" rel="noopener noreferrer">github.com/manu-mishra/RLMWithStrands</a></li>
+<li><strong>Research Paper</strong>: <a href="https://arxiv.org/abs/2512.24601" target="_blank" rel="noopener noreferrer">Recursive Language Models (arXiv:2512.24601)</a></li>
+<li><strong>Strands Agents</strong>: <a href="https://github.com/awslabs/strands-agents" target="_blank" rel="noopener noreferrer">github.com/awslabs/strands-agents</a></li>
+<li><strong>Amazon Bedrock AgentCore</strong>: <a href="https://aws.amazon.com/bedrock/agentcore" target="_blank" rel="noopener noreferrer">aws.amazon.com/bedrock/agentcore</a></li>
+<li><strong>Amazon Bedrock</strong>: <a href="https://aws.amazon.com/bedrock" target="_blank" rel="noopener noreferrer">aws.amazon.com/bedrock</a></li>
+<li><strong>AWS CDK</strong>: <a href="https://docs.aws.amazon.com/cdk" target="_blank" rel="noopener noreferrer">docs.aws.amazon.com/cdk</a></li>
+</ul>
+<hr>
+<p><strong>Tags</strong>: #AmazonBedrock #GenerativeAI #AgentCore #StrandsAgents #MachineLearning #AWS</p>]]></content>
+        <author>
+            <name>Manu Mishra</name>
+            <uri>https://github.com/manu-mishra</uri>
+        </author>
+        <category label="amazon bedrock" term="amazon bedrock"/>
+        <category label="agentcore" term="agentcore"/>
+        <category label="strands agents" term="strands agents"/>
+        <category label="recursive language models" term="recursive language models"/>
+        <category label="generative ai" term="generative ai"/>
+        <category label="machine learning" term="machine learning"/>
+        <category label="aws" term="aws"/>
+        <category label="long context" term="long context"/>
+    </entry>
     <entry>
         <title type="html"><![CDATA[AWS Re:Invent 2025, Reinvented — Powered by MCP]]></title>
         <id>https://manumishra.com/blog/aws-reinvent-2025-reinvented-powered-by-mcp</id>

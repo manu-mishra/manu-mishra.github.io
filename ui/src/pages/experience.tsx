@@ -10,7 +10,7 @@ const experienceItems: TimelineItem[] = [
     title: 'Senior Solutions Architect',
     company: 'Amazon Web Services (AWS)',
     description: [
-      'Provide architectural solutions to Digital Native Business customers generating around 100 million in annual recurring revenue.',
+      'Provide architectural solutions to Digital Native Business customers in Software Internet and Model Providers segment generating around 150+ million in annual recurring revenue.',
       'Work closely with customers to ensure their technology infrastructure aligns with business goals.',
       'Design scalable and reliable cloud solutions to support customer operations.',
       'Implement best practices following AWS Well-Architected Framework.',
