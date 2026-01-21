@@ -22,10 +22,15 @@ Opens development server at `http://localhost:3000`
 ### Build & Deploy to GitHub Pages
 
 ```bash
+# Build the site
 cd ui
 npm run build
+
+# Copy to docs directory
 cd ..
 cp -r ui/build/* docs/
+
+# Commit and push
 git add .
 git commit -m "Deploy updates"
 git push
@@ -55,4 +60,13 @@ git push
 
 1. Create `.mdx` file in `ui/blog/` with format: `YYYY-MM-DD-slug.mdx`
 2. Add frontmatter with metadata
-3. Build and deploy: `npm run build && cp -r ui/build/* docs/`
+3. Build and deploy:
+   ```bash
+   cd ui
+   npm run build
+   cd ..
+   cp -r ui/build/* docs/
+   git add .
+   git commit -m "Add new blog post"
+   git push
+   ```
