@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkuiv_2=self.webpackChunkuiv_2||[]).push([[1882],{449:s=>{s.exports=JSON.parse('{"tag":{"label":"kinesis","permalink":"/blog/tags/kinesis","allTagsPath":"/blog/tags","count":1,"unlisted":false},"listMetadata":{"permalink":"/blog/tags/kinesis","page":1,"postsPerPage":6,"totalPages":1,"totalCount":1,"blogDescription":"Blog","blogTitle":"Blog"}}')}}]);

@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkuiv_2=self.webpackChunkuiv_2||[]).push([[6216],{8792:t=>{t.exports=JSON.parse('{"tag":{"label":"iot","permalink":"/blog/tags/iot","allTagsPath":"/blog/tags","count":1,"unlisted":false},"listMetadata":{"permalink":"/blog/tags/iot","page":1,"postsPerPage":6,"totalPages":1,"totalCount":1,"blogDescription":"Blog","blogTitle":"Blog"}}')}}]);
