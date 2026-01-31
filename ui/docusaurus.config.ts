@@ -5,7 +5,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 const config: Config = {
   title: 'Manu Mishra',
   tagline: 'Solutions Architect & Applied Software Engineer',
-  favicon: 'img/logo.png',
+  favicon: 'img/manu-mishra-fav-icon.png',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -74,7 +74,12 @@ const config: Config = {
 
   themeConfig: {
     // Replace with your project's social card
-    image: 'img/logo.png',
+    image: 'img/manu-mishra-headshot-white-bg.jpg',
+    metadata: [
+      {name: 'og:image', content: 'https://manumishra.com/img/manu-mishra-headshot-white-bg.jpg'},
+      {name: 'twitter:card', content: 'summary_large_image'},
+      {name: 'twitter:image', content: 'https://manumishra.com/img/manu-mishra-headshot-white-bg.jpg'},
+    ],
     navbar: {
       title: 'Manu Mishra',
       logo: {

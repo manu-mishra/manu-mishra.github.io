@@ -1,5 +1,6 @@
 import React from 'react';
 import Layout from '@theme/Layout';
+import Head from '@docusaurus/Head';
 import Timeline, { TimelineItem } from '../components/Timeline';
 import PageHeader from '../components/PageHeader';
 import styles from './experience.module.css';
@@ -98,12 +99,32 @@ export default function Experience(): JSX.Element {
     <Layout
       title="Professional Experience"
       description="Manu Mishra's professional experience and career timeline">
+      <Head>
+        <meta property="og:image" content="https://manumishra.com/img/manu-mishra-aws-octave-strategic-planning.jpg" />
+        <meta name="twitter:image" content="https://manumishra.com/img/manu-mishra-aws-octave-strategic-planning.jpg" />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Head>
       <PageHeader 
         title="Professional Experience"
         description="My journey through the tech industry"
       />
       <main className="container margin-vert--lg">
         <Timeline items={experienceItems} />
+        
+        <div className="row margin-top--lg">
+          <div className="col col--8 col--offset-2">
+            <div style={{textAlign: 'center', marginTop: '3rem'}}>
+              <img 
+                src="/img/manu-mishra-aws-octave-strategic-planning.jpg" 
+                alt="Manu Mishra with AWS Octave Strategic Planning Team" 
+                style={{maxWidth: '100%', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)'}}
+              />
+              <p style={{marginTop: '1rem', fontSize: '0.9rem', color: 'var(--ifm-color-emphasis-600)'}}>
+                AWS Octave Strategic Planning Team
+              </p>
+            </div>
+          </div>
+        </div>
       </main>
     </Layout>
   );

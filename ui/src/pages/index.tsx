@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
+import Head from '@docusaurus/Head';
 import HomepageBlogPosts from '../components/HomepageBlogPosts';
 
 import styles from './index.module.css';
@@ -20,8 +21,8 @@ function HomepageHeader() {
           <div className={styles.visitingCardContent}>
             <div className={styles.visitingCardLeft}>
               <img 
-                src="/img/logo.png" 
-                alt="Manu Mishra" 
+                src="/img/manu-mishra-profile.png" 
+                alt="Manu Mishra - Solutions Architect & Applied Software Engineer" 
                 className={styles.profileImage} 
               />
             </div>
@@ -163,6 +164,11 @@ export default function Home(): JSX.Element {
     <Layout
       title={siteConfig.title}
       description="Manu Mishra - Solutions Architect & Applied Software Engineer">
+      <Head>
+        <meta property="og:image" content="https://manumishra.com/img/manu-mishra-profile.png" />
+        <meta name="twitter:image" content="https://manumishra.com/img/manu-mishra-profile.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Head>
       <HomepageHeader />
       <main>
         <HomepageBlogPosts />
