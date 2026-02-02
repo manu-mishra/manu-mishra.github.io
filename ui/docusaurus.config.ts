@@ -43,22 +43,7 @@ const config: Config = {
       'classic',
       {
         docs: false, // Disable docs plugin
-        blog: {
-          showReadingTime: true,
-          feedOptions: {
-            type: ['rss', 'atom'],
-            xslt: true,
-          },
-          // Remove editUrl to remove the "edit this page" links
-          authorsMapPath: 'authors.yml',
-          onInlineAuthors: 'ignore',
-          blogSidebarTitle: 'All Blog Posts',
-          blogSidebarCount: 'ALL',
-          sortPosts: 'descending',
-          postsPerPage: 6,
-          blogListComponent: '@theme/BlogListPage',
-          blogPostComponent: '@theme/BlogPostPage',
-        },
+        blog: false, // Disable default blog plugin
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -69,6 +54,27 @@ const config: Config = {
           filename: 'sitemap.xml',
         },
       } satisfies Preset.Options,
+    ],
+  ],
+
+  plugins: [
+    [
+      './plugins/recent-blog-posts',
+      {
+        showReadingTime: true,
+        feedOptions: {
+          type: ['rss', 'atom'],
+          xslt: true,
+        },
+        authorsMapPath: 'authors.yml',
+        onInlineAuthors: 'ignore',
+        blogSidebarTitle: 'All Blog Posts',
+        blogSidebarCount: 'ALL',
+        sortPosts: 'descending',
+        postsPerPage: 6,
+        blogListComponent: '@theme/BlogListPage',
+        blogPostComponent: '@theme/BlogPostPage',
+      },
     ],
   ],
 
