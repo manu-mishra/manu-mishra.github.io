@@ -76,6 +76,7 @@ const config: Config = {
     // Replace with your project's social card
     image: 'img/manu-mishra-headshot-white-bg.jpg',
     metadata: [
+      {name: 'msvalidate.01', content: '8D78E08118D465445E0BA072DB19A547'},
       {name: 'og:image', content: 'https://manumishra.com/img/manu-mishra-headshot-white-bg.jpg'},
       {name: 'twitter:card', content: 'summary_large_image'},
       {name: 'twitter:image', content: 'https://manumishra.com/img/manu-mishra-headshot-white-bg.jpg'},
