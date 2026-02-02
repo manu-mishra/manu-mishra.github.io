@@ -76,9 +76,18 @@ const config: Config = {
     // Replace with your project's social card
     image: 'img/manu-mishra-headshot-white-bg.jpg',
     metadata: [
+      {name: 'description', content: 'Manu Mishra - Distinguished Solutions Architect, Applied Software Engineer, Technical Author & Researcher specializing in AI, machine learning, and cloud-native architectures. Explore cutting-edge insights, published research, and innovative solutions.'},
+      {name: 'keywords', content: 'Manu Mishra, Distinguished Solutions Architect, Expert Software Engineer, Technical Author, Researcher, AI Specialist, Machine Learning, Artificial Intelligence, AWS Specialist, Cloud Architecture, Enterprise Solutions, Technical Leadership, Innovation, Published Author'},
+      {name: 'author', content: 'Manu Mishra'},
       {name: 'msvalidate.01', content: '8D78E08118D465445E0BA072DB19A547'},
-      {name: 'og:image', content: 'https://manumishra.com/img/manu-mishra-headshot-white-bg.jpg'},
+      {property: 'og:title', content: 'Manu Mishra - Distinguished Solutions Architect, Author & Researcher in AI & Cloud'},
+      {property: 'og:description', content: 'Discover cutting-edge insights, published research, and proven expertise in AI, machine learning, and cloud-native architectures from an industry-leading solutions architect, technical author, and researcher.'},
+      {property: 'og:url', content: 'https://manumishra.com'},
+      {property: 'og:type', content: 'website'},
+      {property: 'og:image', content: 'https://manumishra.com/img/manu-mishra-headshot-white-bg.jpg'},
       {name: 'twitter:card', content: 'summary_large_image'},
+      {name: 'twitter:title', content: 'Manu Mishra - Distinguished Solutions Architect, Author & Researcher in AI & Cloud'},
+      {name: 'twitter:description', content: 'Discover cutting-edge insights, published research, and proven expertise in AI, machine learning, and cloud-native architectures from an industry-leading solutions architect, technical author, and researcher.'},
       {name: 'twitter:image', content: 'https://manumishra.com/img/manu-mishra-headshot-white-bg.jpg'},
     ],
     navbar: {
