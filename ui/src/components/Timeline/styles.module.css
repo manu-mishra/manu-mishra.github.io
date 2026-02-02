@@ -48,6 +48,8 @@
   padding-right: 20px;
   text-align: right;
   padding-top: 20px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .timelineRight {
@@ -67,12 +69,17 @@
   color: var(--ifm-color-emphasis-600);
   margin-bottom: 0.5rem;
   letter-spacing: 0.5px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .timelineCompany {
   font-size: 0.9rem;
   color: var(--ifm-color-primary);
   font-weight: 500;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .timelineTitle {
@@ -118,47 +125,66 @@
 /* Responsive styles */
 @media screen and (max-width: 768px) {
   .timelineContainer::after {
-    left: 100px; /* Adjusted for mobile */
+    left: 110px; /* Adjusted for mobile */
   }
   
   .timelineItem::after {
-    left: 100px; /* Match the line position */
+    left: 110px; /* Match the line position */
   }
   
   .timelineLeft {
-    width: 80px;
-    padding-right: 15px;
+    width: 95px;
+    padding-right: 10px;
+    font-size: 0.85rem;
   }
   
   .timelineRight {
-    padding-left: 30px;
+    padding-left: 25px;
   }
   
   .timelineDate {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
+    letter-spacing: 0;
   }
   
   .timelineCompany {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
 }
 
 /* For very small screens */
 @media screen and (max-width: 480px) {
+  .timelineContainer {
+    padding: 0 10px;
+  }
+  
   .timelineContainer::after {
-    left: 70px;
+    left: 80px;
   }
   
   .timelineItem::after {
-    left: 70px;
+    left: 80px;
   }
   
   .timelineLeft {
-    width: 60px;
-    padding-right: 10px;
+    width: 70px;
+    padding-right: 8px;
   }
   
   .timelineRight {
-    padding-left: 20px;
+    padding-left: 18px;
+    padding-right: 10px;
+  }
+  
+  .timelineDate {
+    font-size: 0.65rem;
+  }
+  
+  .timelineCompany {
+    font-size: 0.7rem;
+  }
+  
+  .timelineTitle {
+    font-size: 1.1rem;
   }
 }

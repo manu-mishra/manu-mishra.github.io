@@ -5,6 +5,7 @@
  */
 
 @import './patterns.css';
+@import './mobile-menu-fix.css';
 
 /* You can override the default Infima variables here. */
 :root {
@@ -87,12 +88,85 @@ body {
 }
 
 /* Add a subtle gradient to the header backgrounds */
+/* Prevent horizontal scroll */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* Ensure navbar and mobile menu are above all content */
+.navbar {
+  z-index: 1000 !important;
+}
+
+.navbar__items {
+  z-index: 1000 !important;
+}
+
+.navbar-sidebar {
+  z-index: 1000 !important;
+  background-color: var(--ifm-background-color) !important;
+}
+
+.navbar-sidebar__backdrop {
+  z-index: 999 !important;
+  background-color: rgba(0, 0, 0, 0.6) !important;
+}
+
+.navbar-sidebar__items {
+  background-color: var(--ifm-background-color) !important;
+}
+
+.navbar-sidebar__item {
+  opacity: 1 !important;
+}
+
+.menu__link {
+  color: var(--ifm-font-color-base) !important;
+  opacity: 1 !important;
+}
+
+/* Fix mobile menu visibility */
+@media (max-width: 996px) {
+  .navbar-sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background-color: var(--ifm-background-color) !important;
+    z-index: 1000 !important;
+  }
+  
+  .navbar-sidebar__items {
+    height: 100% !important;
+    overflow-y: auto !important;
+    background-color: var(--ifm-background-color) !important;
+  }
+  
+  .navbar-sidebar .menu__list-item {
+    opacity: 1 !important;
+  }
+  
+  .navbar-sidebar .menu__link {
+    color: var(--ifm-font-color-base) !important;
+    opacity: 1 !important;
+    font-size: 1.1rem !important;
+    padding: 0.75rem 1rem !important;
+  }
+  
+  .navbar-sidebar .menu__link:hover {
+    background-color: var(--ifm-color-emphasis-100) !important;
+  }
+}
+
 .hero, .aboutHeader, .experienceHeader, .themesHeader, header[class*="Header"] {
   background: linear-gradient(135deg, var(--ifm-color-primary-darkest), var(--ifm-color-primary));
   position: relative;
   overflow: hidden;
   /* Add a subtle overlay to reduce brightness */
   box-shadow: inset 0 0 0 2000px rgba(0, 0, 0, 0.2);
+  z-index: 1;
 }
 
 /* Add a futuristic grid pattern overlay */
