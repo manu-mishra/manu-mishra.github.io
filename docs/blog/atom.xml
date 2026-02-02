@@ -126,7 +126,7 @@
         <category label="python" term="python"/>
     </entry>
     <entry>
-        <title type="html"><![CDATA[Building Serverless Real-Time Streaming Analytics with Amazon S3 Tables and Kinesis Data Firehose]]></title>
+        <title type="html"><![CDATA[Serverless Streaming Analytics with S3 Tables & Firehose]]></title>
         <id>https://manumishra.com/blog/s3-tables-streaming-analytics</id>
         <link href="https://manumishra.com/blog/s3-tables-streaming-analytics"/>
         <updated>2026-01-25T00:00:00.000Z</updated>
@@ -332,7 +332,7 @@
         <category label="data governance" term="data governance"/>
     </entry>
     <entry>
-        <title type="html"><![CDATA[Build Recursive Language Models on AWS in Minutes with Strands Agents and Amazon Bedrock AgentCore]]></title>
+        <title type="html"><![CDATA[Recursive Language Models on AWS with Strands Agents]]></title>
         <id>https://manumishra.com/blog/recursive-language-models-strands-agentcore</id>
         <link href="https://manumishra.com/blog/recursive-language-models-strands-agentcore"/>
         <updated>2026-01-19T00:00:00.000Z</updated>
@@ -822,7 +822,7 @@ CloudWatch → GenAI Observability shows:</p>
         <category label="cost optimization" term="cost optimization"/>
     </entry>
     <entry>
-        <title type="html"><![CDATA[Running 1.58-bit LLMs on AWS Lambda - When Serverless Meets Extreme Quantization]]></title>
+        <title type="html"><![CDATA[Running 1.58-bit LLMs on AWS Lambda with BitNet]]></title>
         <id>https://manumishra.com/blog/deploy-microsoft-bitnet-llm-on-aws-lambda</id>
         <link href="https://manumishra.com/blog/deploy-microsoft-bitnet-llm-on-aws-lambda"/>
         <updated>2025-06-20T00:00:00.000Z</updated>
@@ -1072,7 +1072,7 @@ CloudWatch → GenAI Observability shows:</p>
         <category label="autonomous agents" term="autonomous agents"/>
     </entry>
     <entry>
-        <title type="html"><![CDATA[From Data Chaos to Data Confidence - A Pragmatic Playbook for Self‑Sustaining Data Governance]]></title>
+        <title type="html"><![CDATA[Data Governance Playbook - From Chaos to Confidence]]></title>
         <id>https://manumishra.com/blog/data-governance-playbook</id>
         <link href="https://manumishra.com/blog/data-governance-playbook"/>
         <updated>2025-05-02T00:00:00.000Z</updated>
@@ -1163,7 +1163,7 @@ CloudWatch → GenAI Observability shows:</p>
         <category label="organizational culture" term="organizational culture"/>
     </entry>
     <entry>
-        <title type="html"><![CDATA[Tackling Digital Standstill Through the Theory of Constraints - A New Lens on Technical Debt]]></title>
+        <title type="html"><![CDATA[Digital Standstill & Theory of Constraints]]></title>
         <id>https://manumishra.com/blog/digital-standstill-theory-constraints</id>
         <link href="https://manumishra.com/blog/digital-standstill-theory-constraints"/>
         <updated>2024-08-23T00:00:00.000Z</updated>
@@ -1488,7 +1488,7 @@ CloudWatch → GenAI Observability shows:</p>
         <category label="innovation" term="innovation"/>
     </entry>
     <entry>
-        <title type="html"><![CDATA[The Craftsmanship of Software Engineering - Why We Should Objectify Tools, Not Debates]]></title>
+        <title type="html"><![CDATA[Software Craftsmanship - Objectify Tools, Not Debates]]></title>
         <id>https://manumishra.com/blog/software-craftsmanship</id>
         <link href="https://manumishra.com/blog/software-craftsmanship"/>
         <updated>2023-05-09T00:00:00.000Z</updated>
