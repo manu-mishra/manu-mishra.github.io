@@ -97,10 +97,15 @@ const experienceItems: TimelineItem[] = [
 export default function Experience(): JSX.Element {
   return (
     <Layout
-      title="Professional Experience"
-      description="Manu Mishra's professional experience and career timeline">
+      title="Professional Experience - Manu Mishra | 18+ Years in AI, Cloud & Enterprise Solutions"
+      description="Explore Manu Mishra's distinguished career spanning 18+ years in AI, machine learning, cloud architecture, and enterprise solutions. From AWS Senior Solutions Architect to technical leadership roles at Fortune 500 companies.">
       <Head>
+        <meta name="keywords" content="Manu Mishra Experience, AWS Solutions Architect, AI Expert, Cloud Architecture Career, Technical Leadership, Enterprise Solutions, Career Timeline" />
+        <meta property="og:title" content="Professional Experience - Manu Mishra | 18+ Years in AI, Cloud & Enterprise Solutions" />
+        <meta property="og:description" content="Explore Manu Mishra's distinguished career spanning 18+ years in AI, machine learning, cloud architecture, and enterprise solutions." />
         <meta property="og:image" content="https://manumishra.com/img/manu-mishra-aws-octave-strategic-planning.jpg" />
+        <meta name="twitter:title" content="Professional Experience - Manu Mishra | 18+ Years in AI, Cloud & Enterprise Solutions" />
+        <meta name="twitter:description" content="Explore Manu Mishra's distinguished career spanning 18+ years in AI, machine learning, cloud architecture, and enterprise solutions." />
         <meta name="twitter:image" content="https://manumishra.com/img/manu-mishra-aws-octave-strategic-planning.jpg" />
         <meta name="twitter:card" content="summary_large_image" />
       </Head>

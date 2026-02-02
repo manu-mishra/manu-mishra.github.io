@@ -7,10 +7,15 @@ import styles from './about.module.css';
 export default function About(): JSX.Element {
   return (
     <Layout
-      title="About Me"
-      description="About Manu Mishra - Solutions Architect & Applied Software Engineer">
+      title="About Manu Mishra - Distinguished Solutions Architect, Author & Researcher"
+      description="Learn about Manu Mishra's 18+ years of experience in AI, machine learning, cloud architecture, and enterprise solutions. Technical author, researcher, and industry-leading solutions architect.">
       <Head>
+        <meta name="keywords" content="Manu Mishra, About, Solutions Architect, AI Expert, Machine Learning, Cloud Architecture, Technical Author, Researcher, AWS" />
+        <meta property="og:title" content="About Manu Mishra - Distinguished Solutions Architect, Author & Researcher" />
+        <meta property="og:description" content="Learn about Manu Mishra's 18+ years of experience in AI, machine learning, cloud architecture, and enterprise solutions." />
         <meta property="og:image" content="https://manumishra.com/img/manu-mishra-professional-headshot.jpg" />
+        <meta name="twitter:title" content="About Manu Mishra - Distinguished Solutions Architect, Author & Researcher" />
+        <meta name="twitter:description" content="Learn about Manu Mishra's 18+ years of experience in AI, machine learning, cloud architecture, and enterprise solutions." />
         <meta name="twitter:image" content="https://manumishra.com/img/manu-mishra-professional-headshot.jpg" />
         <meta name="twitter:card" content="summary_large_image" />
       </Head>

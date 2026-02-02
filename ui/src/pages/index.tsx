@@ -162,10 +162,15 @@ export default function Home(): JSX.Element {
   const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
-      title={siteConfig.title}
-      description="Manu Mishra - Solutions Architect & Applied Software Engineer">
+      title="Manu Mishra - Distinguished Solutions Architect, Author & Researcher in AI & Cloud"
+      description="Manu Mishra - Distinguished Solutions Architect, Applied Software Engineer, Technical Author & Researcher specializing in AI, machine learning, and cloud-native architectures. Explore cutting-edge insights, published research, and innovative solutions.">
       <Head>
+        <meta name="keywords" content="Manu Mishra, Distinguished Solutions Architect, AI Specialist, Machine Learning Expert, Cloud Architecture, AWS, Technical Author, Researcher, Enterprise Solutions" />
+        <meta property="og:title" content="Manu Mishra - Distinguished Solutions Architect, Author & Researcher in AI & Cloud" />
+        <meta property="og:description" content="Discover cutting-edge insights, published research, and proven expertise in AI, machine learning, and cloud-native architectures from an industry-leading solutions architect." />
         <meta property="og:image" content="https://manumishra.com/img/manu-mishra-profile.png" />
+        <meta name="twitter:title" content="Manu Mishra - Distinguished Solutions Architect, Author & Researcher in AI & Cloud" />
+        <meta name="twitter:description" content="Discover cutting-edge insights, published research, and proven expertise in AI, machine learning, and cloud-native architectures from an industry-leading solutions architect." />
         <meta name="twitter:image" content="https://manumishra.com/img/manu-mishra-profile.png" />
         <meta name="twitter:card" content="summary_large_image" />
       </Head>
