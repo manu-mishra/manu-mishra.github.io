@@ -103,10 +103,10 @@ export default function Experience(): JSX.Element {
         <meta name="keywords" content="Manu Mishra Experience, AWS Solutions Architect, AI Expert, Cloud Architecture Career, Technical Leadership, Enterprise Solutions, Career Timeline" />
         <meta property="og:title" content="Professional Experience - Manu Mishra | 18+ Years in AI, Cloud & Enterprise Solutions" />
         <meta property="og:description" content="Explore Manu Mishra's distinguished career spanning 18+ years in AI, machine learning, cloud architecture, and enterprise solutions." />
-        <meta property="og:image" content="https://manumishra.com/img/manu-mishra-aws-octave-strategic-planning.jpg" />
+        <meta property="og:image" content="https://manumishra.com/img/manu-mishra-headshot-white-bg.jpg" />
         <meta name="twitter:title" content="Professional Experience - Manu Mishra | 18+ Years in AI, Cloud & Enterprise Solutions" />
         <meta name="twitter:description" content="Explore Manu Mishra's distinguished career spanning 18+ years in AI, machine learning, cloud architecture, and enterprise solutions." />
-        <meta name="twitter:image" content="https://manumishra.com/img/manu-mishra-aws-octave-strategic-planning.jpg" />
+        <meta name="twitter:image" content="https://manumishra.com/img/manu-mishra-headshot-white-bg.jpg" />
         <meta name="twitter:card" content="summary_large_image" />
       </Head>
       <PageHeader 
@@ -115,21 +115,6 @@ export default function Experience(): JSX.Element {
       />
       <main className="container margin-vert--lg">
         <Timeline items={experienceItems} />
-        
-        <div className="row margin-top--lg">
-          <div className="col col--8 col--offset-2">
-            <div style={{textAlign: 'center', marginTop: '3rem'}}>
-              <img 
-                src="/img/manu-mishra-aws-octave-strategic-planning.jpg" 
-                alt="Manu Mishra with AWS Octave Strategic Planning Team" 
-                style={{maxWidth: '100%', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)'}}
-              />
-              <p style={{marginTop: '1rem', fontSize: '0.9rem', color: 'var(--ifm-color-emphasis-600)'}}>
-                AWS Octave Strategic Planning Team
-              </p>
-            </div>
-          </div>
-        </div>
       </main>
     </Layout>
   );
