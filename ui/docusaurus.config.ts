@@ -50,7 +50,7 @@ const config: Config = {
             xslt: true,
           },
           // Remove editUrl to remove the "edit this page" links
-          authorsMapPath: './blog/authors.yml',
+          authorsMapPath: 'authors.yml',
           onInlineAuthors: 'ignore',
           blogSidebarTitle: 'All Blog Posts',
           blogSidebarCount: 'ALL',

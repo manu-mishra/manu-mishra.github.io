@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkuiv_2=self.webpackChunkuiv_2||[]).push([[8947],{6600:e=>{e.exports=JSON.parse('{"authors":[{"name":"Manu Mishra","title":"Solutions Architect & Applied Software Engineer","url":"https://github.com/manu-mishra","imageURL":"/img/logo.png","key":"manu","page":null,"count":18}]}')}}]);
