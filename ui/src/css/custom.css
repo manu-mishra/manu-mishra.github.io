@@ -87,6 +87,14 @@ body {
   -webkit-backdrop-filter: blur(10px);
 }
 
+/* On mobile, backdrop-filter on the navbar constrains fixed sidebar/backdrop to navbar height. */
+@media (max-width: 996px) {
+  .navbar {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
 /* Add a subtle gradient to the header backgrounds */
 /* Prevent horizontal scroll */
 html, body {
@@ -124,40 +132,6 @@ html, body {
 .menu__link {
   color: var(--ifm-font-color-base) !important;
   opacity: 1 !important;
-}
-
-/* Fix mobile menu visibility */
-@media (max-width: 996px) {
-  .navbar-sidebar {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    background-color: var(--ifm-background-color) !important;
-    z-index: 1000 !important;
-  }
-  
-  .navbar-sidebar__items {
-    height: 100% !important;
-    overflow-y: auto !important;
-    background-color: var(--ifm-background-color) !important;
-  }
-  
-  .navbar-sidebar .menu__list-item {
-    opacity: 1 !important;
-  }
-  
-  .navbar-sidebar .menu__link {
-    color: var(--ifm-font-color-base) !important;
-    opacity: 1 !important;
-    font-size: 1.1rem !important;
-    padding: 0.75rem 1rem !important;
-  }
-  
-  .navbar-sidebar .menu__link:hover {
-    background-color: var(--ifm-color-emphasis-100) !important;
-  }
 }
 
 .hero, .aboutHeader, .experienceHeader, .themesHeader, header[class*="Header"] {
