@@ -3,6 +3,7 @@ import Layout from '@theme/Layout';
 import Head from '@docusaurus/Head';
 import Timeline, { TimelineItem } from '../components/Timeline';
 import PageHeader from '../components/PageHeader';
+import StructuredData from '../components/StructuredData';
 import styles from './experience.module.css';
 
 const experienceItems: TimelineItem[] = [
@@ -109,7 +110,27 @@ export default function Experience(): JSX.Element {
         <meta name="twitter:image" content="https://manumishra.com/img/manu-mishra-headshot-white-bg.jpg" />
         <meta name="twitter:card" content="summary_large_image" />
       </Head>
-      <PageHeader 
+      <StructuredData
+        data={{
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "itemListElement": experienceItems.map((item, index) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "item": {
+              "@type": "Role",
+              "roleName": item.title,
+              "startDate": item.date, // Note: Schema expects ISO dates, but free text is often accepted for display. ideally parse this.
+              "description": Array.isArray(item.description) ? item.description.join(' ') : String(item.description),
+              "memberOf": {
+                "@type": "Organization",
+                "name": item.company
+              }
+            }
+          }))
+        }}
+      />
+      <PageHeader
         title="Professional Experience"
         description="My journey through the tech industry"
       />

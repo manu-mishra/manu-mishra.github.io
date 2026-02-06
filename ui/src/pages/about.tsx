@@ -51,7 +51,18 @@ export default function About(): JSX.Element {
               "height": "1120",
               "caption": "Manu Mishra Professional Headshot"
             },
-            "jobTitle": "Distinguished Solutions Architect"
+            "jobTitle": "Distinguished Solutions Architect",
+            "sameAs": [
+              "https://github.com/manu-mishra",
+              "https://linkedin.com/in/manu-mishra"
+            ],
+            "knowsAbout": [
+              "AWS Lambda", "Amazon Bedrock", "Amazon S3", "Kinesis", "Python", "Terraform", "Docker", "Serverless",
+              "LLMs & GenAI", "Machine Learning", "Apache Iceberg", "Streaming Analytics", "Data Governance",
+              "Lake Formation", "Azure", "C#", ".NET", "JavaScript", "TypeScript", "Angular", "Kubernetes",
+              "Service Fabric", "SQL Server", "Cosmos DB", "Redis", "IoT", "API Design", "Microservices",
+              "DevOps", "Infrastructure as Code", "EventBridge", "Cost Optimization"
+            ]
           }
         }}
       />
