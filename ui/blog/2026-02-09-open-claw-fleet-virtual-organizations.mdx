@@ -1,0 +1,73 @@
+---
+slug: open-claw-fleet-virtual-organizations-ai-agents
+title: Open-Claw-Fleet - Running Thousands of AI Agents on AWS
+description: An open-source project that deploys autonomous AI agents on AWS ECS, where each agent has its own role, memory, and can talk to other agents.
+keywords: [ai agents, aws ecs, openclaw, autonomous ai, multi-agent systems, matrix protocol, container orchestration, ai infrastructure]
+image: /img/blog/open-claw-fleet-logo.png
+authors: manu
+tags: [ai, aws, ecs, containers, infrastructure, open-source, autonomous-agents]
+---
+
+![Open-Claw-Fleet](/img/blog/open-claw-fleet-logo.png)
+
+I wanted to run hundreds of AI agents that could work together like a team. Not chatbots—actual autonomous agents that execute tasks, remember what they've done, and coordinate with each other.
+
+So I built Open-Claw-Fleet.
+
+<!--truncate-->
+
+## The problem with single agents
+
+[OpenClaw](https://github.com/openclaw/openclaw) is an autonomous AI agent framework. Unlike typical AI assistants, it runs locally, remembers context between sessions, and actually does things—executes shell commands, manages files, automates browsers.
+
+But it's designed for one person running one agent. I wanted something different: a whole team of agents working together. An engineering agent that writes code. A reviewer agent that checks it. A deployment agent that ships it. All talking to each other, all remembering their work.
+
+You can't just spin up 100 copies of OpenClaw on one machine. Each agent needs its own isolated environment, persistent memory that survives restarts, a way to find and talk to other agents, and something managing their lifecycles.
+
+## What I built
+
+Open-Claw-Fleet runs on AWS. ECS Fargate runs each agent in its own container, isolated from each other with dedicated CPU and memory. EFS stores agent memory so when a container restarts, the agent picks up where it left off.
+
+For communication, I use Conduit, a Matrix server. Agents join rooms, send messages, and coordinate work through it. Cloud Map handles service discovery—agents find Conduit without hardcoded IPs, so you can deploy anywhere and agents figure out where to connect.
+
+Element Web gives humans a window into agent conversations. You can watch them work, jump into discussions, and give directions. Access goes through a bastion host with SSM, no SSH keys or open ports needed.
+
+The whole thing is AWS CDK code. Deploy it, tear it down, modify it, version control it.
+
+## How agents run
+
+Each agent is a Docker container with 0.5 vCPU and 1GB RAM (adjustable). EFS mounts for persistent memory, environment variables set the role and credentials, and Cloud Map integration lets agents find services automatically.
+
+Passwords are derived from a master secret using hashing, so agents authenticate without storing credentials anywhere. They run in private subnets with no direct internet access—everything flows through the internal network.
+
+## Testing it
+
+I deployed one Conduit server, one Element Web UI, ten agents with different roles, and one bastion host. Agents started in about 30 seconds, memory persisted across restarts, and agent-to-agent messages took under 100ms. The whole setup costs around $50/month.
+
+EFS worked well for persistence. Cloud Map eliminated configuration headaches. Matrix handled the messaging load without issues.
+
+## What I learned
+
+Smaller containers start faster. My first Docker images were 2GB. After switching to multi-stage builds and slim base images, they dropped to 500MB and startup time fell 60%.
+
+EFS needs tuning. Default settings caused latency spikes, but Max I/O mode and provisioned throughput fixed it.
+
+Don't hardcode IPs. I tried it and it broke on every redeployment. Cloud Map with DNS discovery is the right approach.
+
+Matrix scales well. Conduit handled 10 agents easily, and benchmarks suggest one instance can support over 1000 before needing horizontal scaling.
+
+Spot instances save money—70% cheaper for agents that can tolerate interruption. Keep critical agents on regular capacity.
+
+## Try it
+
+The code is on GitHub: [github.com/manu-mishra/open-claw-fleet](https://github.com/manu-mishra/open-claw-fleet)
+
+You'll need an AWS account with ECS, EFS, and Cloud Map access, plus Node.js 18+, AWS CDK, and Docker. The repo has CDK code, Dockerfiles, config templates, and docs.
+
+## Why I built this
+
+Most AI tooling assumes one agent, one user. But the interesting problems need agents that work together—teams of specialists coordinating on complex tasks.
+
+Open-Claw-Fleet is the infrastructure for that. Deploy agents, give them memory, let them talk to each other, watch what happens.
+
+It's MIT licensed. Contributions welcome.

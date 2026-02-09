@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkuiv_2=self.webpackChunkuiv_2||[]).push([[5634],{9474:a=>{a.exports=JSON.parse('{"tag":{"label":"ecs","permalink":"/blog/tags/ecs","allTagsPath":"/blog/tags","count":1,"unlisted":false},"listMetadata":{"permalink":"/blog/tags/ecs","page":1,"postsPerPage":6,"totalPages":1,"totalCount":1,"blogDescription":"Blog","blogTitle":"Blog"}}')}}]);

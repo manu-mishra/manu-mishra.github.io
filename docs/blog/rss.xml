@@ -4,10 +4,55 @@
         <title>Manu Mishra Blog</title>
         <link>https://manumishra.com/blog</link>
         <description>Manu Mishra Blog</description>
-        <lastBuildDate>Sat, 31 Jan 2026 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Mon, 09 Feb 2026 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <language>en</language>
+        <item>
+            <title><![CDATA[Open-Claw-Fleet - Running Thousands of AI Agents on AWS]]></title>
+            <link>https://manumishra.com/blog/open-claw-fleet-virtual-organizations-ai-agents</link>
+            <guid>https://manumishra.com/blog/open-claw-fleet-virtual-organizations-ai-agents</guid>
+            <pubDate>Mon, 09 Feb 2026 00:00:00 GMT</pubDate>
+            <description><![CDATA[An open-source project that deploys autonomous AI agents on AWS ECS, where each agent has its own role, memory, and can talk to other agents.]]></description>
+            <content:encoded><![CDATA[<p><img decoding="async" loading="lazy" alt="Open-Claw-Fleet" src="https://manumishra.com/assets/images/open-claw-fleet-logo-4ebf1b2d1bc94ceba581960c33349e0e.png" width="1536" height="1024" class="img_ev3q"></p>
+<p>I wanted to run hundreds of AI agents that could work together like a team. Not chatbots—actual autonomous agents that execute tasks, remember what they've done, and coordinate with each other.</p>
+<p>So I built Open-Claw-Fleet.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="the-problem-with-single-agents">The problem with single agents<a href="https://manumishra.com/blog/open-claw-fleet-virtual-organizations-ai-agents#the-problem-with-single-agents" class="hash-link" aria-label="Direct link to The problem with single agents" title="Direct link to The problem with single agents">​</a></h2>
+<p><a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener noreferrer">OpenClaw</a> is an autonomous AI agent framework. Unlike typical AI assistants, it runs locally, remembers context between sessions, and actually does things—executes shell commands, manages files, automates browsers.</p>
+<p>But it's designed for one person running one agent. I wanted something different: a whole team of agents working together. An engineering agent that writes code. A reviewer agent that checks it. A deployment agent that ships it. All talking to each other, all remembering their work.</p>
+<p>You can't just spin up 100 copies of OpenClaw on one machine. Each agent needs its own isolated environment, persistent memory that survives restarts, a way to find and talk to other agents, and something managing their lifecycles.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="what-i-built">What I built<a href="https://manumishra.com/blog/open-claw-fleet-virtual-organizations-ai-agents#what-i-built" class="hash-link" aria-label="Direct link to What I built" title="Direct link to What I built">​</a></h2>
+<p>Open-Claw-Fleet runs on AWS. ECS Fargate runs each agent in its own container, isolated from each other with dedicated CPU and memory. EFS stores agent memory so when a container restarts, the agent picks up where it left off.</p>
+<p>For communication, I use Conduit, a Matrix server. Agents join rooms, send messages, and coordinate work through it. Cloud Map handles service discovery—agents find Conduit without hardcoded IPs, so you can deploy anywhere and agents figure out where to connect.</p>
+<p>Element Web gives humans a window into agent conversations. You can watch them work, jump into discussions, and give directions. Access goes through a bastion host with SSM, no SSH keys or open ports needed.</p>
+<p>The whole thing is AWS CDK code. Deploy it, tear it down, modify it, version control it.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="how-agents-run">How agents run<a href="https://manumishra.com/blog/open-claw-fleet-virtual-organizations-ai-agents#how-agents-run" class="hash-link" aria-label="Direct link to How agents run" title="Direct link to How agents run">​</a></h2>
+<p>Each agent is a Docker container with 0.5 vCPU and 1GB RAM (adjustable). EFS mounts for persistent memory, environment variables set the role and credentials, and Cloud Map integration lets agents find services automatically.</p>
+<p>Passwords are derived from a master secret using hashing, so agents authenticate without storing credentials anywhere. They run in private subnets with no direct internet access—everything flows through the internal network.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="testing-it">Testing it<a href="https://manumishra.com/blog/open-claw-fleet-virtual-organizations-ai-agents#testing-it" class="hash-link" aria-label="Direct link to Testing it" title="Direct link to Testing it">​</a></h2>
+<p>I deployed one Conduit server, one Element Web UI, ten agents with different roles, and one bastion host. Agents started in about 30 seconds, memory persisted across restarts, and agent-to-agent messages took under 100ms. The whole setup costs around $50/month.</p>
+<p>EFS worked well for persistence. Cloud Map eliminated configuration headaches. Matrix handled the messaging load without issues.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="what-i-learned">What I learned<a href="https://manumishra.com/blog/open-claw-fleet-virtual-organizations-ai-agents#what-i-learned" class="hash-link" aria-label="Direct link to What I learned" title="Direct link to What I learned">​</a></h2>
+<p>Smaller containers start faster. My first Docker images were 2GB. After switching to multi-stage builds and slim base images, they dropped to 500MB and startup time fell 60%.</p>
+<p>EFS needs tuning. Default settings caused latency spikes, but Max I/O mode and provisioned throughput fixed it.</p>
+<p>Don't hardcode IPs. I tried it and it broke on every redeployment. Cloud Map with DNS discovery is the right approach.</p>
+<p>Matrix scales well. Conduit handled 10 agents easily, and benchmarks suggest one instance can support over 1000 before needing horizontal scaling.</p>
+<p>Spot instances save money—70% cheaper for agents that can tolerate interruption. Keep critical agents on regular capacity.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="try-it">Try it<a href="https://manumishra.com/blog/open-claw-fleet-virtual-organizations-ai-agents#try-it" class="hash-link" aria-label="Direct link to Try it" title="Direct link to Try it">​</a></h2>
+<p>The code is on GitHub: <a href="https://github.com/manu-mishra/open-claw-fleet" target="_blank" rel="noopener noreferrer">github.com/manu-mishra/open-claw-fleet</a></p>
+<p>You'll need an AWS account with ECS, EFS, and Cloud Map access, plus Node.js 18+, AWS CDK, and Docker. The repo has CDK code, Dockerfiles, config templates, and docs.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="why-i-built-this">Why I built this<a href="https://manumishra.com/blog/open-claw-fleet-virtual-organizations-ai-agents#why-i-built-this" class="hash-link" aria-label="Direct link to Why I built this" title="Direct link to Why I built this">​</a></h2>
+<p>Most AI tooling assumes one agent, one user. But the interesting problems need agents that work together—teams of specialists coordinating on complex tasks.</p>
+<p>Open-Claw-Fleet is the infrastructure for that. Deploy agents, give them memory, let them talk to each other, watch what happens.</p>
+<p>It's MIT licensed. Contributions welcome.</p>]]></content:encoded>
+            <category>ai</category>
+            <category>aws</category>
+            <category>ecs</category>
+            <category>containers</category>
+            <category>infrastructure</category>
+            <category>open-source</category>
+            <category>autonomous-agents</category>
+        </item>
         <item>
             <title><![CDATA[Universal Image MCP - One Server, Three AI Image Providers]]></title>
             <link>https://manumishra.com/blog/universal-image-mcp-multi-provider-image-generation</link>
