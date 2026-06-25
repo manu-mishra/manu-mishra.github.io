@@ -35,12 +35,12 @@ const experienceItems: TimelineItem[] = [
   },
   {
     date: 'August 2017 - November 2019',
-    title: 'Technical Consultant',
+    title: 'Technology Consultant',
     company: 'ComTec Information Systems',
     description: [
-      'Served as Tech Lead for Wolters Kluwer, leading an agile team of 6 people.',
+      'Led an agile team of 6 people for Wolters Kluwer.',
       'Ensured production readiness of new global Audit software with high scalability.',
-      'Implemented zero-downtime deployment strategy with Service Fabric clusters.',
+      'Drove the first production release with fully automated, zero-downtime deployments on Service Fabric clusters; authored production runbooks, trained the Ops team, and led load-testing efforts.',
       'Achieved 50x performance improvement and reduced cloud spending by ~70%.',
       'Enhanced security through defense in depth, distributed identity flows, and MFA.'
     ],
@@ -48,14 +48,15 @@ const experienceItems: TimelineItem[] = [
   },
   {
     date: 'May 2013 - July 2017',
-    title: 'Technical Consultant / Development Lead',
+    title: 'Technical Delivery Manager',
     company: 'Microsoft Corporation',
     description: [
-      'Delivered large IoT projects in home automation and connected cars domains as Tech Lead.',
-      'Led TATA Motors connected cars project and Glen Dimplex connected homes project.',
-      'Specialized in Azure PaaS services and modern Windows apps.',
-      'Conducted in-person technical enablement sessions across Asia Pacific region.',
-      'Recognized as key talent and received multiple awards.'
+      'Managed and grew a team of engineers delivering large-scale IoT solutions across home automation and connected-car domains.',
+      'Owned end-to-end delivery for the TATA Motors connected-cars and Glen Dimplex connected-homes programs, accountable for scope, timelines, and stakeholder relationships.',
+      'Set technical direction and architecture standards (Azure PaaS, microservices), balancing delivery velocity with engineering quality.',
+      'Advised ISV and SMB partners on Azure cloud adoption and led pre-sales solution architecture across the Microsoft advisory group.',
+      'Developed talent through coaching, hiring, and performance management; led technical enablement across the Asia Pacific region.',
+      'Recognized for team performance and individual leadership impact with multiple awards.'
     ],
     technologies: ['Azure IoT Hub', 'Event Hubs', 'Stream Analytics', 'Service Fabric', 'Microservices', 'Xamarin Forms']
   },
