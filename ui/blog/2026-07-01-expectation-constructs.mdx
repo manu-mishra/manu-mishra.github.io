@@ -1,0 +1,91 @@
+---
+slug: expectation-constructs-agentic-ai-primitive
+title: 'Expectation Constructs: The Missing Primitive in Agentic AI'
+description: Expectation Constructs are a focused unit of agent work that defines what to produce, how it is judged, how retries are bounded, and what context moves forward—a unifying primitive for reliable agentic AI.
+keywords: [expectation constructs, agentic ai, ai agents, react, reflexion, agent orchestration, multi-agent systems, agent evaluation, llm agents]
+image: /img/blog/expectation-constructs.png
+authors: manu
+tags: [ai, agentic-ai, ai-agents, orchestration, architecture]
+date: 2026-07-01
+---
+
+![Expectation Constructs](/img/blog/expectation-constructs.png)
+
+I have built and reviewed enough agentic systems to notice a recurring gap. We have plenty of patterns for how an agent thinks and acts—ReAct, reflection, evaluators, swarms, orchestrators. What we don't have is a clean, shared unit of *work* that ties those patterns together. When an agent fails, the honest answer to "which part broke?" is usually a shrug. We rerun the whole thing and hope.
+
+That gap is expensive. Without a defined unit of work, you can't judge success consistently, you can't bound retries, and you can't tell whether the agent produced the wrong thing or was judged by the wrong standard. You end up debugging vibes.
+
+{/* truncate */}
+
+## The missing primitive
+
+I have started modeling agent work around what I call an **Expectation Construct**: a focused unit of agent work that defines what should be produced, how it is judged, how retries are bounded, and what context moves forward.
+
+The name matters. Most agent failures aren't reasoning failures—they're *expectation* failures. Nobody said clearly what "done" looked like, so the agent optimized for something adjacent and everyone found out later.
+
+An Expectation Construct has five components:
+
+- **WORK** — what should be produced.
+- **SKILLS** — what capabilities are needed to produce it.
+- **CHECK** — how success is judged.
+- **LIMITS** — how retries are bounded.
+- **HANDOFF** — what context and output moves forward.
+
+That's the whole primitive. It's deliberately small. The point isn't to add ceremony; it's to make the implicit parts of agent work explicit enough to own, test, and reuse.
+
+## The runtime loop
+
+The construct runs as a simple, terminating loop:
+
+1. Combine **Work** and **Skills** to produce a result.
+2. Run the **Check** against that result.
+3. If it passes, execute the **Handoff** and finish.
+4. If it fails, retry the work—bounded by **Limits**.
+
+The lock in this design is Limits. A retry loop with no bound is how agents burn budget and hang. Limits—a maximum number of attempts, a time budget, or both—guarantee the loop terminates whether or not the Check ever passes. When it exhausts, that's information too: you hand off a failure with the reason attached instead of silently spinning.
+
+What makes this useful in practice is that every failure now has an address. The result was wrong? That's Work. The agent lacked a tool or context? Skills. The standard was too loose or too strict? Check. It ran forever or gave up too early? Limits. The next stage got garbage? Handoff. You stop debugging vibes and start debugging a specific component.
+
+## A worked example: updating discharge instructions
+
+Abstractions are cheap, so here's a concrete one I like because it has real consequences. Suppose an agent is updating hospital discharge instructions for a defined patient group.
+
+- **WORK:** updated instructions for that patient group.
+- **SKILLS:** clinical context, plain-language writing, and privacy review.
+- **CHECK:** clinical guidance is preserved, the language is genuinely plain, and there is no unauthorized PHI.
+- **LIMITS:** 3 attempts, 30 minutes.
+- **HANDOFF:** the approved draft, the assumptions made, supporting evidence, and any unresolved questions.
+
+Notice what this buys you. The Check encodes the things that actually matter—accuracy, readability, and privacy—so success is judged the same way every time instead of depending on whoever reviews it that day. The Limits mean a struggling agent doesn't quietly loop against protected health data for an hour. And the Handoff carries forward not just the draft but the *assumptions and open questions*, so a human reviewer or the next construct starts with context instead of reverse-engineering intent.
+
+## How it relates to existing patterns
+
+Expectation Constructs are not a replacement for the agent patterns you already use. They're the primitive those patterns plug into. Each existing technique strengthens one part of the construct:
+
+- **ReAct** expands the range of actions and reasoning available to Work and Skills. It makes the "produce" step more capable.
+- **Loops** automate repetition until the Check passes or the Limits are reached. That's the recurrence and retry behavior, made explicit.
+- **Evaluators and judges** provide stronger, more reliable Checks. When a simple assertion isn't enough, a judge model raises the quality of the gate.
+- **Self-Refine and Reflexion** improve the quality of feedback between attempts, so retries are smarter rather than just repeated.
+- **Swarms** distribute execution or evaluation across multiple agents—parallelizing the Work or the Check.
+- **Orchestrators** create and assign Expectation Constructs dynamically, deciding what work needs to exist.
+- **Handoffs and graphs** connect constructs into larger workflows, wiring one construct's Handoff into the next construct's Work and Skills.
+
+Read the list again and a pattern emerges: everything the field has built maps onto one of the five components. That's the argument for treating this as a unifying primitive. The constructs are the nouns; ReAct, Reflexion, and swarms are the verbs that operate on them.
+
+## Why it matters
+
+The practical payoff comes down to five things:
+
+- **A clearer unit of work.** Agents get a precise thing to own and complete, not a fuzzy goal.
+- **Independent completion criteria.** Success is judged by the Check, consistently, instead of subjectively per run.
+- **Better failure diagnosis.** You know which part failed—work, skills, check, limits, or handoff—instead of rerunning the whole pipeline blind.
+- **A reusable building block.** Capture a construct once and reuse it across domains and teams. The discharge-instructions shape works for release notes or policy summaries with different Skills and Checks.
+- **Composability.** Chain constructs through their Handoffs to solve complex, multi-step outcomes while keeping each step individually verifiable.
+
+Put together, Expectation Constructs make agent work reliable, observable, and scalable. Reliable because Limits guarantee termination and Checks guarantee a standard. Observable because failures have addresses. Scalable because a well-defined construct is a thing you can reuse and compose rather than rebuild.
+
+## Closing
+
+I'm not proposing new machinery. I'm proposing a shared shape for the work we're already asking agents to do. Most of the pain I see in agentic systems isn't the model—it's the missing contract around each unit of work. Name the Work, the Skills, the Check, the Limits, and the Handoff, and a lot of that pain becomes tractable engineering instead of guesswork.
+
+If you're building agents today, try writing your next task as an Expectation Construct before you write any code. If you can't fill in all five components, that's exactly the ambiguity that would have bitten you in production.
