@@ -2,11 +2,184 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://manumishra.com/blog</id>
     <title>Manu Mishra Blog</title>
-    <updated>2026-02-09T00:00:00.000Z</updated>
+    <updated>2026-09-29T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://manumishra.com/blog"/>
     <subtitle>Manu Mishra Blog</subtitle>
     <icon>https://manumishra.com/img/manu-mishra-fav-icon.png</icon>
+    <entry>
+        <title type="html"><![CDATA[Laya on AWS Lambda - A Curiosity-Driven Experiment with a Decision Model]]></title>
+        <id>https://manumishra.com/blog/laya-on-lambda</id>
+        <link href="https://manumishra.com/blog/laya-on-lambda"/>
+        <updated>2026-09-29T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Running the 421M-parameter Laya decision model on AWS Lambda with CPU-only PyTorch. What broke on ARM64, where the cold start really goes, warm latency, Banking77 accuracy, and how it compares with BitNet and EmbeddingGemma on Lambda.]]></summary>
+        <content type="html"><![CDATA[<p><img decoding="async" loading="lazy" alt="Laya on AWS Lambda" src="https://manumishra.com/assets/images/laya-on-lambda-6e6f774833a597c40bba5820126651a0.png" width="1594" height="1194" class="img_ev3q"></p>
+<p><em>Note: This is a curiosity-driven experiment, not a production recommendation. Cold starts are long, the ARM64 path doesn't work, and confidence scores aren't calibrated. For real workloads, look at <a href="https://aws.amazon.com/sagemaker/" target="_blank" rel="noopener noreferrer">Amazon SageMaker</a>, <a href="https://aws.amazon.com/bedrock/" target="_blank" rel="noopener noreferrer">Amazon Bedrock</a>, or a warm, right-sized container service.</em></p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="1-the-idea">1. The idea<a href="https://manumishra.com/blog/laya-on-lambda#1-the-idea" class="hash-link" aria-label="Direct link to 1. The idea" title="Direct link to 1. The idea">​</a></h2>
+<p>First I ran a <a href="https://manumishra.com/blog/deploy-microsoft-bitnet-llm-on-aws-lambda">1.58-bit LLM on Lambda</a>. Then <a href="https://manumishra.com/blog/embeddings-gemma-on-lambda">an embedding model</a>. Both worked, with the usual serverless caveats. That left one more kind of model I was curious about: one that doesn't generate text or vectors, but makes a decision.</p>
+<p><a href="https://huggingface.co/convaiinnovations/laya" target="_blank" rel="noopener noreferrer">Laya</a> is exactly that. It's an open-weight (Apache-2.0), 421M-parameter model that reads some text, answers a typed question about it, and returns a bounded answer in a single forward pass. Could that run on Lambda, CPU only, with no inference server? Only one way to find out.</p>
+<!-- -->
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="2-why-a-decision-model-is-interesting">2. Why a decision model is interesting<a href="https://manumishra.com/blog/laya-on-lambda#2-why-a-decision-model-is-interesting" class="hash-link" aria-label="Direct link to 2. Why a decision model is interesting" title="Direct link to 2. Why a decision model is interesting">​</a></h2>
+<p>Laya answers three kinds of questions:</p>
+<ul>
+<li><strong>choice</strong>: pick one of a set of options, such as which team should handle a support ticket</li>
+<li><strong>score</strong>: pick a level on an ordered scale, such as how urgent a request is</li>
+<li><strong>noul</strong>: give the probability that a yes/no statement is true</li>
+</ul>
+<p>That covers a lot of everyday plumbing: ticket routing, guardrails, triage, picking which downstream agent or model should handle a request. And the shape suits Lambda well. There's no token-by-token loop and no GPU, just one forward pass per request.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="3-the-architecture">3. The architecture<a href="https://manumishra.com/blog/laya-on-lambda#3-the-architecture" class="hash-link" aria-label="Direct link to 3. The architecture" title="Direct link to 3. The architecture">​</a></h2>
+<p>The design stayed deliberately small. A Lambda container image holds Python 3.11, PyTorch (CPU), the Laya SDK, and the model checkpoint itself, pinned to one revision and verified by SHA-256 at build time. At runtime it's fully offline: no Hugging Face downloads, no tokens.</p>
+<ul>
+<li><strong>Compute</strong>: Lambda, x86_64, 6 GB of memory (about 3.5 vCPUs), 300 s timeout</li>
+<li><strong>Image</strong>: about 1.04 GB compressed, 2.08 GB uncompressed, on the Lambda AL2023 base image, running as a non-root user with a read-only filesystem</li>
+<li><strong>Access</strong>: direct, IAM-authorized <code>aws lambda invoke</code> only, with no Function URL or API Gateway</li>
+<li><strong>Infrastructure</strong>: AWS CDK, a logs-only IAM role, and 7-day log retention</li>
+</ul>
+<p>The model loads once per execution environment and stays in memory for warm requests.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="4-arm64-first-and-it-didnt-work">4. ARM64 first, and it didn't work<a href="https://manumishra.com/blog/laya-on-lambda#4-arm64-first-and-it-didnt-work" class="hash-link" aria-label="Direct link to 4. ARM64 first, and it didn't work" title="Direct link to 4. ARM64 first, and it didn't work">​</a></h2>
+<p>Like my earlier experiments, I started on ARM64 (Graviton). The image built fine and ran fine in a native ARM64 container on my laptop. On Lambda, every inference failed:</p>
+<div class="language-text codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#F8F8F2;--prism-background-color:#282A36"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-text codeBlock_bY9V thin-scrollbar" style="color:#F8F8F2;background-color:#282A36"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#F8F8F2"><span class="token plain">Can't open MIDR_EL1 sysfs entry</span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">Error in cpuinfo: failed to parse the list of possible processors in /sys/devices/system/cpu/possible</span><br></span></code></pre></div></div>
+<p>PyTorch's CPU-detection library needs CPU-topology files that Lambda's ARM64 sandbox hides. Forcing one thread didn't help, and neither did skipping explicit thread settings. It's a <a href="https://github.com/pytorch/cpuinfo/issues/143" target="_blank" rel="noopener noreferrer">known issue</a>. I switched to x86_64 and it worked on the first try.</p>
+<p>Lesson one: a container that works on ARM64 locally can still fail inside Lambda's ARM64 sandbox. Test on Lambda early.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="5-it-worked-but-the-cold-start-hurt">5. It worked, but the cold start hurt<a href="https://manumishra.com/blog/laya-on-lambda#5-it-worked-but-the-cold-start-hurt" class="hash-link" aria-label="Direct link to 5. It worked, but the cold start hurt" title="Direct link to 5. It worked, but the cold start hurt">​</a></h2>
+<p>The first working deployment answered correctly, but its first request took about 94 seconds. Warm requests took about 0.37 seconds. A cold start that slow needed an explanation, so before blaming the model I went looking for problems in my own code. I found three:</p>
+<ul>
+<li><strong>A duplicated 205 MB layer.</strong> A <code>chmod</code> in the final Docker stage rewrote the whole Python runtime into a second image layer. Setting permissions in the builder stage instead cut the compressed image from 1.25 GB to 1.04 GB.</li>
+<li><strong>Hashing 843 MB on every cold start.</strong> The checkpoint was SHA-256-hashed every time the model loaded, even though the build had already verified it. It's now opt-in.</li>
+<li><strong>A slow first inference.</strong> PyTorch does about 6 seconds of one-time setup on the first forward pass. A small warm-up call during initialization now absorbs that cost, so the first real user doesn't.</li>
+</ul>
+<p>All three were worth fixing. None of them explained the cold start.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="6-the-real-culprit-a-freshly-deployed-image">6. The real culprit: a freshly deployed image<a href="https://manumishra.com/blog/laya-on-lambda#6-the-real-culprit-a-freshly-deployed-image" class="hash-link" aria-label="Direct link to 6. The real culprit: a freshly deployed image" title="Direct link to 6. The real culprit: a freshly deployed image">​</a></h2>
+<p>Adding per-stage timing to initialization made the picture clear:</p>
+<table><thead><tr><th>Stage</th><th style="text-align:right">First request after a new image deploy</th><th style="text-align:right">Later cold start</th></tr></thead><tbody><tr><td>Import torch</td><td style="text-align:right">3.3 s</td><td style="text-align:right">8.2 s</td></tr><tr><td><strong>Load model</strong></td><td style="text-align:right"><strong>91.3 s</strong></td><td style="text-align:right"><strong>15.6 s</strong></td></tr><tr><td>Warm-up inference</td><td style="text-align:right">5.0 s</td><td style="text-align:right">4.4 s</td></tr><tr><td><strong>Total cold request</strong></td><td style="text-align:right"><strong>100.2 s</strong></td><td style="text-align:right"><strong>28.9 s</strong></td></tr></tbody></table>
+<p>Lambda streams container image data from Amazon ECR on demand. Right after a new image is deployed nothing is cached yet, so the first execution environment pulls the 843 MB checkpoint while reading it. Later cold starts on the same image are much faster. The first request after a deploy actually hit the original 120-second timeout, which is why the timeout is now 300 seconds. (The 28.9 s figure comes from a single later cold start, so treat it as indicative, not a guarantee.)</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="7-performance-results">7. Performance results<a href="https://manumishra.com/blog/laya-on-lambda#7-performance-results" class="hash-link" aria-label="Direct link to 7. Performance results" title="Direct link to 7. Performance results">​</a></h2>
+<p>With the model warm, 20 sequential requests measured:</p>
+<table><thead><tr><th style="text-align:right">p50</th><th style="text-align:right">p95</th><th style="text-align:right">Max</th><th style="text-align:right">Billed p95</th><th style="text-align:right">Peak memory</th></tr></thead><tbody><tr><td style="text-align:right">374 ms</td><td style="text-align:right">423 ms</td><td style="text-align:right">433 ms</td><td style="text-align:right">431 ms</td><td style="text-align:right">2,985 MB of 6,144 MB</td></tr></tbody></table>
+<p>Every benchmark call sent the same request:</p>
+<div class="language-json codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#F8F8F2;--prism-background-color:#282A36"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-json codeBlock_bY9V thin-scrollbar" style="color:#F8F8F2;background-color:#282A36"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#F8F8F2"><span class="token punctuation" style="color:rgb(248, 248, 242)">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">  </span><span class="token property">"state"</span><span class="token operator">:</span><span class="token plain"> </span><span class="token punctuation" style="color:rgb(248, 248, 242)">{</span><span class="token property">"subject"</span><span class="token operator">:</span><span class="token plain"> </span><span class="token string" style="color:rgb(255, 121, 198)">"Duplicate invoice"</span><span class="token punctuation" style="color:rgb(248, 248, 242)">,</span><span class="token plain"> </span><span class="token property">"body"</span><span class="token operator">:</span><span class="token plain"> </span><span class="token string" style="color:rgb(255, 121, 198)">"We were charged twice. Please refund the duplicate."</span><span class="token punctuation" style="color:rgb(248, 248, 242)">}</span><span class="token punctuation" style="color:rgb(248, 248, 242)">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">  </span><span class="token property">"questions"</span><span class="token operator">:</span><span class="token plain"> </span><span class="token punctuation" style="color:rgb(248, 248, 242)">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">    </span><span class="token property">"department"</span><span class="token operator">:</span><span class="token plain"> </span><span class="token punctuation" style="color:rgb(248, 248, 242)">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">      </span><span class="token property">"type"</span><span class="token operator">:</span><span class="token plain"> </span><span class="token string" style="color:rgb(255, 121, 198)">"choice"</span><span class="token punctuation" style="color:rgb(248, 248, 242)">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">      </span><span class="token property">"instructions"</span><span class="token operator">:</span><span class="token plain"> </span><span class="token string" style="color:rgb(255, 121, 198)">"Which team should handle this request?"</span><span class="token punctuation" style="color:rgb(248, 248, 242)">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">      </span><span class="token property">"criteria"</span><span class="token operator">:</span><span class="token plain"> </span><span class="token punctuation" style="color:rgb(248, 248, 242)">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">        </span><span class="token property">"billing"</span><span class="token operator">:</span><span class="token plain"> </span><span class="token string" style="color:rgb(255, 121, 198)">"invoices, payments, and refunds"</span><span class="token punctuation" style="color:rgb(248, 248, 242)">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">        </span><span class="token property">"technical"</span><span class="token operator">:</span><span class="token plain"> </span><span class="token string" style="color:rgb(255, 121, 198)">"bugs, outages, and errors"</span><span class="token punctuation" style="color:rgb(248, 248, 242)">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">        </span><span class="token property">"other"</span><span class="token operator">:</span><span class="token plain"> </span><span class="token string" style="color:rgb(255, 121, 198)">"everything else"</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">      </span><span class="token punctuation" style="color:rgb(248, 248, 242)">}</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">    </span><span class="token punctuation" style="color:rgb(248, 248, 242)">}</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain">  </span><span class="token punctuation" style="color:rgb(248, 248, 242)">}</span><span class="token plain"></span><br></span><span class="token-line" style="color:#F8F8F2"><span class="token plain"></span><span class="token punctuation" style="color:rgb(248, 248, 242)">}</span><br></span></code></pre></div></div>
+<p>Laya answered <code>billing</code> with 95.2% probability (technical 2.3%, other 2.5%).</p>
+<p>One example doesn't tell you much about quality, so I also ran 100 queries from the public <a href="https://github.com/PolyAI-LDN/task-specific-datasets" target="_blank" rel="noopener noreferrer">Banking77</a> test set. Each query was scored against its true intent plus some distractor intents:</p>
+<table><thead><tr><th style="text-align:right">Candidate intents</th><th style="text-align:right">Accuracy</th></tr></thead><tbody><tr><td style="text-align:right">3</td><td style="text-align:right">93%</td></tr><tr><td style="text-align:right">10</td><td style="text-align:right">86%</td></tr><tr><td style="text-align:right">20</td><td style="text-align:right">70%</td></tr></tbody></table>
+<p>That's zero-shot, with a closed list of candidates, not a trained 77-way classifier. Accuracy drops as the list of options grows, and the confidence scores aren't calibrated.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="8-three-experiments-side-by-side">8. Three experiments, side by side<a href="https://manumishra.com/blog/laya-on-lambda#8-three-experiments-side-by-side" class="hash-link" aria-label="Direct link to 8. Three experiments, side by side" title="Direct link to 8. Three experiments, side by side">​</a></h2>
+<table><thead><tr><th></th><th>BitNet (generation)</th><th>EmbeddingGemma (embedding)</th><th>Laya (decision)</th></tr></thead><tbody><tr><td>Parameters</td><td>2B (1.58-bit)</td><td>300M</td><td>421M</td></tr><tr><td>Output</td><td>Generated text</td><td>768-dim vector</td><td>Choice, score, or probability</td></tr><tr><td>Lambda memory</td><td>2–10 GB tested</td><td>2 GB</td><td>6 GB</td></tr><tr><td>Warm model time</td><td>6–7 s for 10 tokens</td><td>0.12–0.33 s</td><td>~0.37 s</td></tr><tr><td>Cold start</td><td>~12 s</td><td>~12 s</td><td>~29 s; ~100 s right after a deploy</td></tr></tbody></table>
+<p>These numbers come from each project's own measurements, taken with different methods and settings, so read this as a rough comparison.</p>
+<p>The pattern is still clear. Models that answer in one forward pass (embeddings and decisions) respond in well under a second. Token-by-token generation takes seconds even for a heavily quantized model. Laya's cold start is the slowest of the three: PyTorch is a heavy runtime, and the checkpoint is larger. The earlier projects' 12-second cold starts may also have come from already-cached images.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="9-why-not-production">9. Why not production<a href="https://manumishra.com/blog/laya-on-lambda#9-why-not-production" class="hash-link" aria-label="Direct link to 9. Why not production" title="Direct link to 9. Why not production">​</a></h2>
+<p>It works, but I wouldn't run anything serious this way:</p>
+<ul>
+<li><strong>Cold starts</strong>: about 30 seconds normally, about 100 seconds right after a deploy. SnapStart doesn't support container images, so hiding them means provisioned concurrency or scheduled warm-up calls, and both cost money while idle.</li>
+<li><strong>ARM64 is off the table</strong> with this PyTorch build, which rules out Lambda's usually cheaper architecture.</li>
+<li><strong>Quality needs work before real use</strong>: confidence isn't calibrated, and accuracy on your own domain has to be measured, not assumed from Banking77.</li>
+<li><strong>Better options exist</strong> for sustained traffic: SageMaker endpoints, or a warm container on ECS or Fargate.</li>
+</ul>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="10-wrapping-up">10. Wrapping up<a href="https://manumishra.com/blog/laya-on-lambda#10-wrapping-up" class="hash-link" aria-label="Direct link to 10. Wrapping up" title="Direct link to 10. Wrapping up">​</a></h2>
+<p>Running Laya on Lambda isn't about beating dedicated inference infrastructure. The question was simply what happens when you put a small decision model on serverless compute. The answer: warm, it's fast and cheap. Cold, you pay mostly for moving an 843 MB model into a fresh sandbox. And ARM64 can surprise you in ways a local container never will.</p>
+<p>The biggest lesson, again: measure before you optimize. I fixed three real issues in my own build, but caching dominated the cold start, and I only found that out by timing every stage.</p>
+<p>The complete implementation, including the benchmarks, the Banking77 evaluation, and an HTML report, is on <a href="https://github.com/manu-mishra/laya-on-lambda" target="_blank" rel="noopener noreferrer">GitHub</a>. Clone it, try it, break it.</p>
+<hr>
+<p><em>Built with <a href="https://kiro.dev/" target="_blank" rel="noopener noreferrer">Kiro</a>, using AI-assisted development to go from idea to measured results quickly.</em></p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="references">References<a href="https://manumishra.com/blog/laya-on-lambda#references" class="hash-link" aria-label="Direct link to References" title="Direct link to References">​</a></h2>
+<ul>
+<li><a href="https://huggingface.co/convaiinnovations/laya" target="_blank" rel="noopener noreferrer">Laya model card</a></li>
+<li><a href="https://github.com/NandhaKishorM/laya" target="_blank" rel="noopener noreferrer">Laya source repository</a></li>
+<li><a href="https://github.com/manu-mishra/laya-on-lambda" target="_blank" rel="noopener noreferrer">Project repository</a></li>
+<li><a href="https://github.com/pytorch/cpuinfo/issues/143" target="_blank" rel="noopener noreferrer">PyTorch cpuinfo issue on Lambda ARM64</a></li>
+<li><a href="https://github.com/PolyAI-LDN/task-specific-datasets" target="_blank" rel="noopener noreferrer">Banking77 dataset</a> (Casanueva et al., 2020, CC BY 4.0)</li>
+<li><a href="https://manumishra.com/blog/deploy-microsoft-bitnet-llm-on-aws-lambda">Previous post: BitNet on AWS Lambda</a></li>
+<li><a href="https://manumishra.com/blog/embeddings-gemma-on-lambda">Previous post: EmbeddingGemma on AWS Lambda</a></li>
+<li><a href="https://docs.aws.amazon.com/lambda/latest/dg/images-create.html" target="_blank" rel="noopener noreferrer">AWS Lambda container images</a></li>
+<li><a href="https://aws.amazon.com/sagemaker/" target="_blank" rel="noopener noreferrer">Amazon SageMaker</a></li>
+</ul>]]></content>
+        <author>
+            <name>Manu Mishra</name>
+            <uri>https://github.com/manu-mishra</uri>
+        </author>
+        <category label="aws lambda" term="aws lambda"/>
+        <category label="serverless" term="serverless"/>
+        <category label="machine learning" term="machine learning"/>
+        <category label="pytorch" term="pytorch"/>
+        <category label="cold start" term="cold start"/>
+        <category label="experiment" term="experiment"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Expectation Constructs: The Missing Primitive in Agentic AI]]></title>
+        <id>https://manumishra.com/blog/expectation-constructs-agentic-ai-primitive</id>
+        <link href="https://manumishra.com/blog/expectation-constructs-agentic-ai-primitive"/>
+        <updated>2026-07-01T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Expectation Constructs are a focused unit of agent work that defines what to produce, how it is judged, how retries are bounded, and what context moves forward—a unifying primitive for reliable agentic AI.]]></summary>
+        <content type="html"><![CDATA[<p><img decoding="async" loading="lazy" alt="Expectation Constructs" src="https://manumishra.com/assets/images/expectation-constructs-a04bc23ed607547ba3979c3d27acd2bb.png" width="1774" height="887" class="img_ev3q"></p>
+<p>I have built and reviewed enough agentic systems to notice a recurring gap. We have plenty of patterns for how an agent thinks and acts—ReAct, reflection, evaluators, swarms, orchestrators. What we don't have is a clean, shared unit of <em>work</em> that ties those patterns together. When an agent fails, the honest answer to "which part broke?" is usually a shrug. We rerun the whole thing and hope.</p>
+<p>That gap is expensive. Without a defined unit of work, you can't judge success consistently, you can't bound retries, and you can't tell whether the agent produced the wrong thing or was judged by the wrong standard. You end up debugging vibes.</p>
+<!-- -->
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="the-missing-primitive">The missing primitive<a href="https://manumishra.com/blog/expectation-constructs-agentic-ai-primitive#the-missing-primitive" class="hash-link" aria-label="Direct link to The missing primitive" title="Direct link to The missing primitive">​</a></h2>
+<p>I have started modeling agent work around what I call an <strong>Expectation Construct</strong>: a focused unit of agent work that defines what should be produced, how it is judged, how retries are bounded, and what context moves forward.</p>
+<p>The name matters. Most agent failures aren't reasoning failures—they're <em>expectation</em> failures. Nobody said clearly what "done" looked like, so the agent optimized for something adjacent and everyone found out later.</p>
+<p>An Expectation Construct has five components:</p>
+<ul>
+<li><strong>WORK</strong> — what should be produced.</li>
+<li><strong>SKILLS</strong> — what capabilities are needed to produce it.</li>
+<li><strong>CHECK</strong> — how success is judged.</li>
+<li><strong>LIMITS</strong> — how retries are bounded.</li>
+<li><strong>HANDOFF</strong> — what context and output moves forward.</li>
+</ul>
+<p>That's the whole primitive. It's deliberately small. The point isn't to add ceremony; it's to make the implicit parts of agent work explicit enough to own, test, and reuse.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="the-runtime-loop">The runtime loop<a href="https://manumishra.com/blog/expectation-constructs-agentic-ai-primitive#the-runtime-loop" class="hash-link" aria-label="Direct link to The runtime loop" title="Direct link to The runtime loop">​</a></h2>
+<p>The construct runs as a simple, terminating loop:</p>
+<ol>
+<li>Combine <strong>Work</strong> and <strong>Skills</strong> to produce a result.</li>
+<li>Run the <strong>Check</strong> against that result.</li>
+<li>If it passes, execute the <strong>Handoff</strong> and finish.</li>
+<li>If it fails, retry the work—bounded by <strong>Limits</strong>.</li>
+</ol>
+<p>The lock in this design is Limits. A retry loop with no bound is how agents burn budget and hang. Limits—a maximum number of attempts, a time budget, or both—guarantee the loop terminates whether or not the Check ever passes. When it exhausts, that's information too: you hand off a failure with the reason attached instead of silently spinning.</p>
+<p>What makes this useful in practice is that every failure now has an address. The result was wrong? That's Work. The agent lacked a tool or context? Skills. The standard was too loose or too strict? Check. It ran forever or gave up too early? Limits. The next stage got garbage? Handoff. You stop debugging vibes and start debugging a specific component.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="a-worked-example-updating-discharge-instructions">A worked example: updating discharge instructions<a href="https://manumishra.com/blog/expectation-constructs-agentic-ai-primitive#a-worked-example-updating-discharge-instructions" class="hash-link" aria-label="Direct link to A worked example: updating discharge instructions" title="Direct link to A worked example: updating discharge instructions">​</a></h2>
+<p>Abstractions are cheap, so here's a concrete one I like because it has real consequences. Suppose an agent is updating hospital discharge instructions for a defined patient group.</p>
+<ul>
+<li><strong>WORK:</strong> updated instructions for that patient group.</li>
+<li><strong>SKILLS:</strong> clinical context, plain-language writing, and privacy review.</li>
+<li><strong>CHECK:</strong> clinical guidance is preserved, the language is genuinely plain, and there is no unauthorized PHI.</li>
+<li><strong>LIMITS:</strong> 3 attempts, 30 minutes.</li>
+<li><strong>HANDOFF:</strong> the approved draft, the assumptions made, supporting evidence, and any unresolved questions.</li>
+</ul>
+<p>Notice what this buys you. The Check encodes the things that actually matter—accuracy, readability, and privacy—so success is judged the same way every time instead of depending on whoever reviews it that day. The Limits mean a struggling agent doesn't quietly loop against protected health data for an hour. And the Handoff carries forward not just the draft but the <em>assumptions and open questions</em>, so a human reviewer or the next construct starts with context instead of reverse-engineering intent.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="how-it-relates-to-existing-patterns">How it relates to existing patterns<a href="https://manumishra.com/blog/expectation-constructs-agentic-ai-primitive#how-it-relates-to-existing-patterns" class="hash-link" aria-label="Direct link to How it relates to existing patterns" title="Direct link to How it relates to existing patterns">​</a></h2>
+<p>Expectation Constructs are not a replacement for the agent patterns you already use. They're the primitive those patterns plug into. Each existing technique strengthens one part of the construct:</p>
+<ul>
+<li><strong>ReAct</strong> expands the range of actions and reasoning available to Work and Skills. It makes the "produce" step more capable.</li>
+<li><strong>Loops</strong> automate repetition until the Check passes or the Limits are reached. That's the recurrence and retry behavior, made explicit.</li>
+<li><strong>Evaluators and judges</strong> provide stronger, more reliable Checks. When a simple assertion isn't enough, a judge model raises the quality of the gate.</li>
+<li><strong>Self-Refine and Reflexion</strong> improve the quality of feedback between attempts, so retries are smarter rather than just repeated.</li>
+<li><strong>Swarms</strong> distribute execution or evaluation across multiple agents—parallelizing the Work or the Check.</li>
+<li><strong>Orchestrators</strong> create and assign Expectation Constructs dynamically, deciding what work needs to exist.</li>
+<li><strong>Handoffs and graphs</strong> connect constructs into larger workflows, wiring one construct's Handoff into the next construct's Work and Skills.</li>
+</ul>
+<p>Read the list again and a pattern emerges: everything the field has built maps onto one of the five components. That's the argument for treating this as a unifying primitive. The constructs are the nouns; ReAct, Reflexion, and swarms are the verbs that operate on them.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="why-it-matters">Why it matters<a href="https://manumishra.com/blog/expectation-constructs-agentic-ai-primitive#why-it-matters" class="hash-link" aria-label="Direct link to Why it matters" title="Direct link to Why it matters">​</a></h2>
+<p>The practical payoff comes down to five things:</p>
+<ul>
+<li><strong>A clearer unit of work.</strong> Agents get a precise thing to own and complete, not a fuzzy goal.</li>
+<li><strong>Independent completion criteria.</strong> Success is judged by the Check, consistently, instead of subjectively per run.</li>
+<li><strong>Better failure diagnosis.</strong> You know which part failed—work, skills, check, limits, or handoff—instead of rerunning the whole pipeline blind.</li>
+<li><strong>A reusable building block.</strong> Capture a construct once and reuse it across domains and teams. The discharge-instructions shape works for release notes or policy summaries with different Skills and Checks.</li>
+<li><strong>Composability.</strong> Chain constructs through their Handoffs to solve complex, multi-step outcomes while keeping each step individually verifiable.</li>
+</ul>
+<p>Put together, Expectation Constructs make agent work reliable, observable, and scalable. Reliable because Limits guarantee termination and Checks guarantee a standard. Observable because failures have addresses. Scalable because a well-defined construct is a thing you can reuse and compose rather than rebuild.</p>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="closing">Closing<a href="https://manumishra.com/blog/expectation-constructs-agentic-ai-primitive#closing" class="hash-link" aria-label="Direct link to Closing" title="Direct link to Closing">​</a></h2>
+<p>I'm not proposing new machinery. I'm proposing a shared shape for the work we're already asking agents to do. Most of the pain I see in agentic systems isn't the model—it's the missing contract around each unit of work. Name the Work, the Skills, the Check, the Limits, and the Handoff, and a lot of that pain becomes tractable engineering instead of guesswork.</p>
+<p>If you're building agents today, try writing your next task as an Expectation Construct before you write any code. If you can't fill in all five components, that's exactly the ambiguity that would have bitten you in production.</p>]]></content>
+        <author>
+            <name>Manu Mishra</name>
+            <uri>https://github.com/manu-mishra</uri>
+        </author>
+        <category label="ai" term="ai"/>
+        <category label="agentic-ai" term="agentic-ai"/>
+        <category label="ai-agents" term="ai-agents"/>
+        <category label="orchestration" term="orchestration"/>
+        <category label="architecture" term="architecture"/>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Open-Claw-Fleet - Running Thousands of AI Agents on AWS]]></title>
         <id>https://manumishra.com/blog/open-claw-fleet-virtual-organizations-ai-agents</id>
@@ -1643,36 +1816,5 @@ CloudWatch → GenAI Observability shows:</p>
         <category label="technology leadership" term="technology leadership"/>
         <category label="KTLO" term="KTLO"/>
         <category label="digital inertia" term="digital inertia"/>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Don't Keep The Lights On]]></title>
-        <id>https://manumishra.com/blog/dont-keep-lights-on</id>
-        <link href="https://manumishra.com/blog/dont-keep-lights-on"/>
-        <updated>2023-04-06T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[Why businesses must deprecate legacy systems and consolidate operations to stay competitive. Learn the cost of maintaining outdated systems and the benefits of strategic consolidation in digital transformation.]]></summary>
-        <content type="html"><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="consolidate-or-get-consolidated">Consolidate or Get Consolidated<a href="https://manumishra.com/blog/dont-keep-lights-on#consolidate-or-get-consolidated" class="hash-link" aria-label="Direct link to Consolidate or Get Consolidated" title="Direct link to Consolidate or Get Consolidated">​</a></h2>
-<p>In 2023, businesses face a choice between consolidating their systems or facing the risk of being consolidated by their competitors. With economic uncertainty and rapid technological change, companies must stay agile and adaptable to stay ahead of the competition. However, many businesses are held back by legacy systems and processes that are no longer efficient or effective.</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="the-cost-of-keeping-the-lights-on">The Cost of Keeping the Lights On<a href="https://manumishra.com/blog/dont-keep-lights-on#the-cost-of-keeping-the-lights-on" class="hash-link" aria-label="Direct link to The Cost of Keeping the Lights On" title="Direct link to The Cost of Keeping the Lights On">​</a></h2>
-<p>Maintaining outdated products and services that don't generate revenue can drain a business's finances and resources. Legacy systems often require more maintenance and support, which can divert resources away from more profitable areas of the business. Additionally, businesses that fail to adapt to changing customer needs and preferences risk losing market share to more nimble competitors.</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="the-benefits-of-deprecating-legacy-systems">The Benefits of Deprecating Legacy Systems<a href="https://manumishra.com/blog/dont-keep-lights-on#the-benefits-of-deprecating-legacy-systems" class="hash-link" aria-label="Direct link to The Benefits of Deprecating Legacy Systems" title="Direct link to The Benefits of Deprecating Legacy Systems">​</a></h2>
-<p>Deprecating legacy systems can bring a range of benefits to businesses. Businesses can lower their maintenance costs and increase efficiency by reducing the number of systems and processes that need support. Legacy systems often require specialized knowledge to maintain, which can be a bottleneck regarding resourcing. By reducing the number of systems to support, businesses can free up resources to focus on more important tasks.</p>
-<p>Moreover, deprecating legacy systems can also improve customer satisfaction. Outdated systems can be slow and unreliable, leading to frustration among customers who are used to faster, more intuitive experiences. By upgrading to newer, more streamlined systems, businesses can provide a better customer experience and build loyalty.</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="investing-in-customers-for-long-term-success">Investing in Customers for Long-Term Success<a href="https://manumishra.com/blog/dont-keep-lights-on#investing-in-customers-for-long-term-success" class="hash-link" aria-label="Direct link to Investing in Customers for Long-Term Success" title="Direct link to Investing in Customers for Long-Term Success">​</a></h2>
-<p>One way to reduce the need for old duplicate systems is to invest in customers to help them migrate to newer services. This can be done through targeted marketing campaigns, personalized support, and incentives to upgrade. By making it easier for customers to switch to newer services, businesses can reduce the need to maintain outdated systems and processes.</p>
-<p>For example, Adobe successfully transitioned from selling boxed software to a cloud-based subscription model by investing in customer education and support. By offering tutorials, webinars, and personalized support, Adobe was able to help its customers migrate to the new system smoothly. The result was a more efficient and profitable business model that better met customer needs.</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="conclusion">Conclusion<a href="https://manumishra.com/blog/dont-keep-lights-on#conclusion" class="hash-link" aria-label="Direct link to Conclusion" title="Direct link to Conclusion">​</a></h2>
-<ul>
-<li>Assess your current systems and processes to identify legacy systems that are no longer efficient or effective.</li>
-<li>Consider deprecating legacy systems to lower maintenance costs, increase efficiency, and improve customer satisfaction.</li>
-<li>Invest in customer education and support to help them migrate to newer services and reduce the need to maintain outdated systems and processes.</li>
-<li>Reinvest resources into more profitable business areas by shedding outdated offerings and focusing on core areas.</li>
-</ul>]]></content>
-        <author>
-            <name>Manu Mishra</name>
-            <uri>https://github.com/manu-mishra</uri>
-        </author>
-        <category label="business strategy" term="business strategy"/>
-        <category label="legacy systems" term="legacy systems"/>
-        <category label="digital transformation" term="digital transformation"/>
     </entry>
 </feed>

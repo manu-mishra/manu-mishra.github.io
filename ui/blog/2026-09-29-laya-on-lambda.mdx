@@ -1,0 +1,164 @@
+---
+slug: laya-on-lambda
+title: Laya on AWS Lambda - A Curiosity-Driven Experiment with a Decision Model
+description: Running the 421M-parameter Laya decision model on AWS Lambda with CPU-only PyTorch. What broke on ARM64, where the cold start really goes, warm latency, Banking77 accuracy, and how it compares with BitNet and EmbeddingGemma on Lambda.
+keywords: [laya model, aws lambda, serverless ai, decision model, pytorch on lambda, lambda container image, cold start, modernbert, banking77, cpu inference]
+image: /img/blog/laya-on-lambda.png
+authors: manu
+tags: [aws lambda, serverless, machine learning, pytorch, cold start, experiment]
+date: 2026-09-29
+---
+
+![Laya on AWS Lambda](/img/blog/laya-on-lambda.png)
+
+*Note: This is a curiosity-driven experiment, not a production recommendation. Cold starts are long, the ARM64 path doesn't work, and confidence scores aren't calibrated. For real workloads, look at [Amazon SageMaker](https://aws.amazon.com/sagemaker/), [Amazon Bedrock](https://aws.amazon.com/bedrock/), or a warm, right-sized container service.*
+
+## 1. The idea
+
+First I ran a [1.58-bit LLM on Lambda](/blog/deploy-microsoft-bitnet-llm-on-aws-lambda). Then [an embedding model](/blog/embeddings-gemma-on-lambda). Both worked, with the usual serverless caveats. That left one more kind of model I was curious about: one that doesn't generate text or vectors, but makes a decision.
+
+[Laya](https://huggingface.co/convaiinnovations/laya) is exactly that. It's an open-weight (Apache-2.0), 421M-parameter model that reads some text, answers a typed question about it, and returns a bounded answer in a single forward pass. Could that run on Lambda, CPU only, with no inference server? Only one way to find out.
+
+{/* truncate */}
+
+## 2. Why a decision model is interesting
+
+Laya answers three kinds of questions:
+
+- **choice**: pick one of a set of options, such as which team should handle a support ticket
+- **score**: pick a level on an ordered scale, such as how urgent a request is
+- **noul**: give the probability that a yes/no statement is true
+
+That covers a lot of everyday plumbing: ticket routing, guardrails, triage, picking which downstream agent or model should handle a request. And the shape suits Lambda well. There's no token-by-token loop and no GPU, just one forward pass per request.
+
+## 3. The architecture
+
+The design stayed deliberately small. A Lambda container image holds Python 3.11, PyTorch (CPU), the Laya SDK, and the model checkpoint itself, pinned to one revision and verified by SHA-256 at build time. At runtime it's fully offline: no Hugging Face downloads, no tokens.
+
+- **Compute**: Lambda, x86_64, 6 GB of memory (about 3.5 vCPUs), 300 s timeout
+- **Image**: about 1.04 GB compressed, 2.08 GB uncompressed, on the Lambda AL2023 base image, running as a non-root user with a read-only filesystem
+- **Access**: direct, IAM-authorized `aws lambda invoke` only, with no Function URL or API Gateway
+- **Infrastructure**: AWS CDK, a logs-only IAM role, and 7-day log retention
+
+The model loads once per execution environment and stays in memory for warm requests.
+
+## 4. ARM64 first, and it didn't work
+
+Like my earlier experiments, I started on ARM64 (Graviton). The image built fine and ran fine in a native ARM64 container on my laptop. On Lambda, every inference failed:
+
+```text
+Can't open MIDR_EL1 sysfs entry
+Error in cpuinfo: failed to parse the list of possible processors in /sys/devices/system/cpu/possible
+```
+
+PyTorch's CPU-detection library needs CPU-topology files that Lambda's ARM64 sandbox hides. Forcing one thread didn't help, and neither did skipping explicit thread settings. It's a [known issue](https://github.com/pytorch/cpuinfo/issues/143). I switched to x86_64 and it worked on the first try.
+
+Lesson one: a container that works on ARM64 locally can still fail inside Lambda's ARM64 sandbox. Test on Lambda early.
+
+## 5. It worked, but the cold start hurt
+
+The first working deployment answered correctly, but its first request took about 94 seconds. Warm requests took about 0.37 seconds. A cold start that slow needed an explanation, so before blaming the model I went looking for problems in my own code. I found three:
+
+- **A duplicated 205 MB layer.** A `chmod` in the final Docker stage rewrote the whole Python runtime into a second image layer. Setting permissions in the builder stage instead cut the compressed image from 1.25 GB to 1.04 GB.
+- **Hashing 843 MB on every cold start.** The checkpoint was SHA-256-hashed every time the model loaded, even though the build had already verified it. It's now opt-in.
+- **A slow first inference.** PyTorch does about 6 seconds of one-time setup on the first forward pass. A small warm-up call during initialization now absorbs that cost, so the first real user doesn't.
+
+All three were worth fixing. None of them explained the cold start.
+
+## 6. The real culprit: a freshly deployed image
+
+Adding per-stage timing to initialization made the picture clear:
+
+| Stage | First request after a new image deploy | Later cold start |
+|---|---:|---:|
+| Import torch | 3.3 s | 8.2 s |
+| **Load model** | **91.3 s** | **15.6 s** |
+| Warm-up inference | 5.0 s | 4.4 s |
+| **Total cold request** | **100.2 s** | **28.9 s** |
+
+Lambda streams container image data from Amazon ECR on demand. Right after a new image is deployed nothing is cached yet, so the first execution environment pulls the 843 MB checkpoint while reading it. Later cold starts on the same image are much faster. The first request after a deploy actually hit the original 120-second timeout, which is why the timeout is now 300 seconds. (The 28.9 s figure comes from a single later cold start, so treat it as indicative, not a guarantee.)
+
+## 7. Performance results
+
+With the model warm, 20 sequential requests measured:
+
+| p50 | p95 | Max | Billed p95 | Peak memory |
+|---:|---:|---:|---:|---:|
+| 374 ms | 423 ms | 433 ms | 431 ms | 2,985 MB of 6,144 MB |
+
+Every benchmark call sent the same request:
+
+```json
+{
+  "state": {"subject": "Duplicate invoice", "body": "We were charged twice. Please refund the duplicate."},
+  "questions": {
+    "department": {
+      "type": "choice",
+      "instructions": "Which team should handle this request?",
+      "criteria": {
+        "billing": "invoices, payments, and refunds",
+        "technical": "bugs, outages, and errors",
+        "other": "everything else"
+      }
+    }
+  }
+}
+```
+
+Laya answered `billing` with 95.2% probability (technical 2.3%, other 2.5%).
+
+One example doesn't tell you much about quality, so I also ran 100 queries from the public [Banking77](https://github.com/PolyAI-LDN/task-specific-datasets) test set. Each query was scored against its true intent plus some distractor intents:
+
+| Candidate intents | Accuracy |
+|---:|---:|
+| 3 | 93% |
+| 10 | 86% |
+| 20 | 70% |
+
+That's zero-shot, with a closed list of candidates, not a trained 77-way classifier. Accuracy drops as the list of options grows, and the confidence scores aren't calibrated.
+
+## 8. Three experiments, side by side
+
+| | BitNet (generation) | EmbeddingGemma (embedding) | Laya (decision) |
+|---|---|---|---|
+| Parameters | 2B (1.58-bit) | 300M | 421M |
+| Output | Generated text | 768-dim vector | Choice, score, or probability |
+| Lambda memory | 2–10 GB tested | 2 GB | 6 GB |
+| Warm model time | 6–7 s for 10 tokens | 0.12–0.33 s | ~0.37 s |
+| Cold start | ~12 s | ~12 s | ~29 s; ~100 s right after a deploy |
+
+These numbers come from each project's own measurements, taken with different methods and settings, so read this as a rough comparison.
+
+The pattern is still clear. Models that answer in one forward pass (embeddings and decisions) respond in well under a second. Token-by-token generation takes seconds even for a heavily quantized model. Laya's cold start is the slowest of the three: PyTorch is a heavy runtime, and the checkpoint is larger. The earlier projects' 12-second cold starts may also have come from already-cached images.
+
+## 9. Why not production
+
+It works, but I wouldn't run anything serious this way:
+
+- **Cold starts**: about 30 seconds normally, about 100 seconds right after a deploy. SnapStart doesn't support container images, so hiding them means provisioned concurrency or scheduled warm-up calls, and both cost money while idle.
+- **ARM64 is off the table** with this PyTorch build, which rules out Lambda's usually cheaper architecture.
+- **Quality needs work before real use**: confidence isn't calibrated, and accuracy on your own domain has to be measured, not assumed from Banking77.
+- **Better options exist** for sustained traffic: SageMaker endpoints, or a warm container on ECS or Fargate.
+
+## 10. Wrapping up
+
+Running Laya on Lambda isn't about beating dedicated inference infrastructure. The question was simply what happens when you put a small decision model on serverless compute. The answer: warm, it's fast and cheap. Cold, you pay mostly for moving an 843 MB model into a fresh sandbox. And ARM64 can surprise you in ways a local container never will.
+
+The biggest lesson, again: measure before you optimize. I fixed three real issues in my own build, but caching dominated the cold start, and I only found that out by timing every stage.
+
+The complete implementation, including the benchmarks, the Banking77 evaluation, and an HTML report, is on [GitHub](https://github.com/manu-mishra/laya-on-lambda). Clone it, try it, break it.
+
+---
+
+*Built with [Kiro](https://kiro.dev), using AI-assisted development to go from idea to measured results quickly.*
+
+## References
+- [Laya model card](https://huggingface.co/convaiinnovations/laya)
+- [Laya source repository](https://github.com/NandhaKishorM/laya)
+- [Project repository](https://github.com/manu-mishra/laya-on-lambda)
+- [PyTorch cpuinfo issue on Lambda ARM64](https://github.com/pytorch/cpuinfo/issues/143)
+- [Banking77 dataset](https://github.com/PolyAI-LDN/task-specific-datasets) (Casanueva et al., 2020, CC BY 4.0)
+- [Previous post: BitNet on AWS Lambda](/blog/deploy-microsoft-bitnet-llm-on-aws-lambda)
+- [Previous post: EmbeddingGemma on AWS Lambda](/blog/embeddings-gemma-on-lambda)
+- [AWS Lambda container images](https://docs.aws.amazon.com/lambda/latest/dg/images-create.html)
+- [Amazon SageMaker](https://aws.amazon.com/sagemaker/)
