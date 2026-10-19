@@ -13,7 +13,7 @@
         <link href="https://manumishra.com/blog/strands-gemma-order-stability"/>
         <updated>2026-10-19T00:00:00.000Z</updated>
         <summary type="html"><![CDATA[How isolated option branches and set-based scoring reduced observed Strands Gemma reversal flips from 851 to zero across 3,900 tests—and where backend stability broke.]]></summary>
-        <content type="html"><![CDATA[<p><img decoding="async" loading="lazy" alt="Same decision, any order—Strands Gemma E2B" src="https://manumishra.com/assets/images/decision-order-4f2c99db4b528bcd7f45299bab3013c5.png" width="1188" height="1190" class="img_ev3q"></p>
+        <content type="html"><![CDATA[<p><img decoding="async" loading="lazy" alt="Same decision, any order—Strands Gemma E2B" src="https://manumishra.com/assets/images/decision-order-4f2c99db4b528bcd7f45299bab3013c5.png" width="1225" height="1218" class="img_ev3q"></p>
 <p>“Which device directly converts chemical energy to electrical energy?”</p>
 <p>The options were a solar-powered calculator, a wood-burning stove, a battery-powered flashlight, and a wind-powered sailboat. In that order, the checkpoint chose the battery-powered flashlight—the correct answer—with an API-returned probability of 0.5589.</p>
 <p>Then I reversed the same four options. The checkpoint chose the solar-powered calculator, now at 0.5615.</p>
