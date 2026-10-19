@@ -1,0 +1,326 @@
+---
+slug: strands-gemma-order-stability
+title: 'Fixing Choice-Order Sensitivity in Decision Models: Strands Gemma E2B'
+description: How isolated option branches and set-based scoring reduced observed Strands Gemma reversal flips from 851 to zero across 3,900 tests—and where backend stability broke.
+keywords: [strands gemma, strands decider, gemma 4, option order sensitivity, permutation equivariance, set-based scoring, decision models, multiple choice bias, model evaluation]
+image: /img/blog/decision-order.png
+authors: manu
+tags: [ai, machine learning, gemma, strands agents, decision models, model evaluation]
+date: 2026-10-19
+---
+
+![Same decision, any order—Strands Gemma E2B](/img/blog/decision-order.png)
+
+“Which device directly converts chemical energy to electrical energy?”
+
+The options were a solar-powered calculator, a wood-burning stove, a battery-powered flashlight, and a wind-powered sailboat. In that order, the checkpoint chose the battery-powered flashlight—the correct answer—with an API-returned probability of 0.5589.
+
+Then I reversed the same four options. The checkpoint chose the solar-powered calculator, now at 0.5615.
+
+| Semantic option | Original order | Reversed order |
+|---|---:|---:|
+| solar-powered calculator | 0.1224 | **0.5615** |
+| wood-burning stove | 0.1229 | 0.0967 |
+| battery-powered flashlight — correct | **0.5589** | 0.2873 |
+| wind-powered sailboat | 0.1958 | 0.0545 |
+
+Both columns map scores back to the same option meanings, regardless of where each option appeared. The values were rounded to four decimals by the original API and renormalized by the evaluation harness; they are not raw logits or calibrated confidence scores. Even with that boundary, the selected meaning changed while the question and available answers remained the same.
+
+This was not an isolated anecdote. In a controlled original-versus-reversed comparison, the winning semantic option differed on **851 of 3,900 questions: 21.82%**. The treatment, semantic alignment, task-level counts, and limitations are documented in the immutable [order-sensitivity evidence](https://github.com/manu-mishra/strands-gemma-order-stable-hybrid/blob/v0.1.0/docs/order-sensitivity-evidence.md). That led to a practical research question: **Can we retrofit a released checkpoint so display order stops driving decisions, without retraining the Gemma torso or inherited adapter and without giving up useful quality?**
+
+The result is a two-mode scorer: one mode isolates options, while the other restores controlled comparison without adding display position. Under the supported execution path, both produced zero observed winner changes across all 3,900 original-versus-reversed cases.
+
+**Get the release:** [source, runtime, tests, and evidence on GitHub (`v0.1.0`)](https://github.com/manu-mishra/strands-gemma-order-stable-hybrid/tree/v0.1.0) · [model components on Hugging Face (`v0.1.0`)](https://huggingface.co/manu-mishra/strands-gemma-order-stable-hybrid/tree/v0.1.0)
+
+{/* truncate */}
+
+## An ordered prompt makes order part of the problem
+
+The original scorer encoded every choice together as one token sequence. That design feels natural because language models consume sequences, but it also makes list order part of the model input.
+
+Move an option and three things change at once: its token position, its label or number, and the neighboring option text shaping its contextual representation. The model no longer sees “the same option in another display slot.” It sees a different sequence and computes different hidden states.
+
+Reproduction depends on three immutable upstream identities, not floating branches:
+
+- **Strands source:** [`strands-labs/strands-decider`](https://github.com/strands-labs/strands-decider/tree/0ac22a97e584f3ccf87cc9b8cc5fdbad57cdf534) at commit `0ac22a97e584f3ccf87cc9b8cc5fdbad57cdf534`
+- **Strands checkpoint:** [`StrandsAgents/strands-decider-E2B-gemma4-v1-2610`](https://huggingface.co/StrandsAgents/strands-decider-E2B-gemma4-v1-2610/tree/d383ecf8534b13d49b3b567a1b66f88fca6d50ba) at revision `d383ecf8534b13d49b3b567a1b66f88fca6d50ba`
+- **Gemma base:** [`google/gemma-4-E2B-it`](https://huggingface.co/google/gemma-4-E2B-it/tree/3e22461f65e89153144f8adb70e3b8c2cc9845a7) at revision `3e22461f65e89153144f8adb70e3b8c2cc9845a7`
+
+The separate Gemma pin matters because the Strands checkpoint does not bundle the base weights, and its adapter configuration does not pin an immutable base revision.
+
+The opening example paraphrases and reformats ARC Easy item `NYSEDREGENTS_2015_8_32` from the [`allenai/ai2_arc`](https://huggingface.co/datasets/allenai/ai2_arc/tree/210d026faf) dataset at revision `210d026faf`. ARC was introduced in [*Think you have Solved Question Answering? Try ARC*](https://arxiv.org/abs/1803.05457) and is distributed under CC BY-SA 4.0.
+
+Prior work shows the problem extends beyond one checkpoint. Researchers have measured [large accuracy changes after reordering multiple-choice options](https://arxiv.org/abs/2308.11483), separated [position and option-label selection bias](https://arxiv.org/abs/2309.03882), and analyzed [order sensitivity alongside token sensitivity](https://aclanthology.org/2024.findings-acl.333/). Small benchmark changes can even [alter model rankings](https://aclanthology.org/2024.acl-long.744/). [Set-Based Prompting](https://papers.neurips.cc/paper_files/paper/2024/file/85529bc995777a74072ef63c05bedd30-Paper-Conference.pdf) offers a related architectural direction by removing order information from designated prompt subsequences.
+
+Those papers establish the broader failure mode. The **851 flips here describe one pinned checkpoint, one complete-reversal treatment, and one controlled evaluation**. The two arms were separate sequential API calls, so the artifact does not independently estimate ordinary repeated-execution variation, nor does it claim to cover every possible permutation.
+
+## Architecture: isolate first, compare only when asked
+
+The retrofit changes both the prompt geometry and the scoring topology. Instead of asking one sequence model to contextualize an ordered list, it creates one aligned branch for every semantic option, scores those branches with shared weights, and adds cross-option context only when the caller explicitly selects `compare_choices`.
+
+![Architecture of the Strands Gemma order-stable hybrid](/img/blog/strands-gemma-order-stable-architecture.png)
+
+[Open or download the editable Excalidraw source](/img/blog/strands-gemma-order-stable-architecture.excalidraw).
+
+*The set computation removes explicit display position, but the measured zero-flip result belongs to the complete serialized execution path—not to the equations alone. See the tagged [architecture and backend boundary](https://github.com/manu-mishra/strands-gemma-order-stable-hybrid/blob/v0.1.0/docs/architecture.md).*
+
+### 1. Render one sibling-free branch per option
+
+For shared state `s` and semantic option `oᵢ`, the renderer constructs `rᵢ = render(s, oᵢ)`. A three-option request becomes three internal prompts:
+
+```text
+same state + same question + same prefix | complete option α + same suffix
+same state + same question + same prefix | complete option β + same suffix
+same state + same question + same prefix | complete option γ + same suffix
+                                           ^ equal logical start
+```
+
+This is stricter than deleting A/B/C labels. [`option_branches.py`](https://github.com/manu-mishra/strands-gemma-order-stable-hybrid/blob/v0.1.0/src/strands_gemma_order_stable_hybrid/option_branches.py) verifies five invariants:
+
+1. Every branch has identical bytes and tokens before its option.
+2. Every option starts at the same logical token index.
+3. A branch contains its complete option and no sibling option.
+4. No generated numeric, alphabetic, first, or last slot signal enters the branch.
+5. Context fitting preserves complete options and equal starts; strict-window mode raises instead of silently breaking the contract.
+
+The tokenizer check uses offset mappings to locate tokens fully inside each option span. It compares every pre-option token sequence and rejects the request if tokenization moves an option boundary. Semantic identity also travels as metadata, so duplicate display strings do not have to be collapsed or reconstructed from row position.
+
+### 2. Score each branch with the same frozen model
+
+Each branch runs as one complete batch-one model call—no sibling rows and no `past_key_values`. From the final hidden states `Hᵢ`, the scorer extracts two vectors from the same forward pass:
+
+```text
+Hᵢ = Gemma(rᵢ)
+dᵢ = pool_last_token(Hᵢ)          # branch answer vector
+xᵢ = gather_at_option_start(Hᵢ)   # option vector at equal logical position
+bᵢ = <q(dᵢ), k(xᵢ)> / sqrt(pointer_dim)
+pᵢ = softmaxᵢ(b / T)
+```
+
+The Gemma torso and inherited Strands adapter stay frozen. The project-fitted replacement pointer head—loaded through the pinned upstream `PointerHead` implementation—projects `dᵢ` and `xᵢ` into query and key vectors and returns one scalar base logit `bᵢ`. This selected head is not the checkpoint’s inherited/original decision-head weights.
+
+For `normal`, the hybrid returns directly from the locked normal engine. On that request path it does not install projection hooks, capture or clone relational features, or execute residual arithmetic. This is an exact bypass rather than “run the residual with a zero weight,” and the disabled-arm gate preserved base logits byte for byte. The residual artifact is still authenticated and loaded once at process startup; the bypass statement applies to scoring the request.
+
+### 3. Add a position-free residual for relational questions
+
+Independent scoring cannot answer questions such as “Which plan has the second-lowest cost?” or “Which value is unique?” The opt-in `compare_choices` path therefore captures `dᵢ` and `xᵢ` from the same isolated forward passes and feeds them to [`TiedSetResidual`](https://github.com/manu-mishra/strands-gemma-order-stable-hybrid/blob/v0.1.0/src/strands_gemma_order_stable_hybrid/set_residual.py).
+
+The released residual uses hidden width `D = 1536`, projection rank `r = 128`, and an MLP hidden width of 64. For active-option mask `M`:
+
+```text
+q̄   = (1 / |M|) Σᵢ∈M dᵢ
+zᵢ  = tanh(Pxᵢ)                 P ∈ R^(128×1536)
+u   = tanh(Qq̄)                 Q ∈ R^(128×1536)
+eᵢⱼ = (zᵢ · zⱼ) / sqrt(128)
+aᵢⱼ = softmaxⱼ(eᵢⱼ over M)
+cᵢ  = Σⱼ∈M aᵢⱼzⱼ
+m   = (1 / |M|) Σⱼ∈M zⱼ
+hᵢ  = [zᵢ, cᵢ, zᵢ - m, zᵢ ⊙ m, u]
+δᵢ  = outᵀ tanh(Whᵢ + b)
+ℓᵢ  = bᵢ + δᵢ
+```
+
+Only `P`, `Q`, `W`, `b`, and `out` are trainable in this stage. Inactive option features are zeroed before projection, excluded from attention and mean pooling, and assigned `-∞` before final softmax. Attention softmax runs in FP32. The request runtime processes one question at a time, so its mask is all true; the generic module still validates padded `[B,K]` inputs and requires at least two finite active options.
+
+Why is it permutation-equivariant? A row permutation `Π` commutes with every shared projection. The mean is invariant, while content attention transforms as `A(ΠZ) = ΠA(Z)Πᵀ`, making `C(ΠZ) = ΠC(Z)`. Every `hᵢ` term is therefore either an invariant broadcast or a correspondingly permuted row. The shared output map gives:
+
+```text
+δ(ΠX) = Πδ(X)
+ℓ(ΠX) = Πℓ(X)
+```
+
+That statement is conditional on equivalent upstream branch features. It proves the set block does not add order information; it does not prove that every dtype, kernel, cache, or batching path will generate numerically equivalent `dᵢ` and `xᵢ`.
+
+### 4. Map rows back by semantic identity
+
+The final response is not aligned by physical slot number. Each row retains its semantic label through scoring, then the runtime uses the upstream `choice`, `noul`, or `score` reader to construct the typed response. Exact ties resolve to the lexicographically smallest semantic identity, never the first encountered row.
+
+The modes finish slightly differently: `normal` applies the existing question-kind temperature and masked softmax to base logits; `compare_choices` adds `δᵢ` to raw base logits and performs FP32 softmax over the active set. Both then use the same semantic readback boundary.
+
+## What the execution contract costs
+
+Isolation replaces one joint encode with *K* complete encodes. The observed latency was almost linear in option count, while the set residual itself added very little:
+
+| Options | `normal` mean | `compare_choices` mean |
+|---:|---:|---:|
+| 2 | 166.803 ms | 167.899 ms |
+| 4 | 330.060 ms | 330.104 ms |
+| 8 | 653.643 ms | 659.543 ms |
+| 16 | 1320.219 ms | 1321.585 ms |
+
+These are recorded observations from an NVIDIA L4 using CUDA, eager attention, Python 3.12.3, Torch 2.14.1+cu130, eight CPU threads, two warmups, and 20 measured runs per cell—not portable latency promises. Peak allocated GPU memory was 10,002,322,944 bytes for `normal` and 10,002,384,384 bytes for `compare_choices`. The residual is cheap; recomputing the shared prefix *K* times is the dominant cost.
+
+## Train the smallest parts, then keep the final test unread
+
+The project used two training stages.
+
+In stage one, the Gemma torso and inherited adapter stayed frozen. I extracted isolated-option features and fitted the replacement pointer head. Eighteen head configurations used disjoint 1,500-row training and 600-row development probes.
+
+In stage two, the complete `normal` scorer stayed fixed. Only five residual tensors learned from relational tasks: two projections, one hidden transform, its bias, and the output readout. Nine residual configurations used 12,000 training rows and 2,000 development rows from a 19,000-row source.
+
+The important firewall was simple: choose the architecture and weights before reading the 2,000-row final relational test. The selection process did not deserialize that test payload and did not resume tuning after opening it. A separate 3,000-row calibration split was reserved for post-selection description.
+
+Repeatedly adapting to a final score turns that score into development feedback. Keeping the final rows unread made the paired comparison prospective rather than a report of whichever settings happened to look best afterward.
+
+## Stability cost about half a standard-suite point
+
+I used three complementary evaluations:
+
+- The **standard suite** contains 3,900 multiple-choice questions from 13 tasks.
+- The **typed suite** contains 1,200 held-out decisions spanning choice, yes/no, and ordered-score outputs across emotion, intent, sarcasm, and hate-severity tasks.
+- [JEVBench](https://github.com/fstandhartinger/JevBench) is a public 231-item benchmark for typed decision models that measures decision accuracy alongside schema and operational behavior.
+
+The exact outcomes were:
+
+| Measurement | Original | `normal` | `compare_choices` |
+|---|---:|---:|---:|
+| Standard, 3,900 questions | **73.00%** (2,847) | 72.49% (2,827) | 72.46% (2,826) |
+| Typed, 1,200 questions | 62.08% (745) | **62.83%** (754) | **62.83%** (754) |
+| JEVBench | 178/231 (77.06%) | **181/231** (78.35%) | **181/231** (78.35%) |
+| Observed winner changes after complete reversal | 851/3,900 | **0/3,900** | **0/3,900** |
+
+Against the original checkpoint, `normal` gave up 0.51 percentage point on the standard suite and `compare_choices` gave up 0.54 point. Both modes gained 0.75 point on the typed suite and three correct items on JEVBench.
+
+Comparison was not a blanket upgrade. It answered one fewer standard question correctly than `normal`, a difference of -0.025641 percentage point, and matched `normal` on the typed suite and JEVBench. The aggregate arithmetic is available in the immutable [`results/results.json`](https://github.com/manu-mishra/strands-gemma-order-stable-hybrid/blob/v0.1.0/results/results.json) release record.
+
+The broader mapped-permutation checks apply specifically to the relational scorer on the locked relational test, across option widths four through eight. They were exhaustive for 821 items with four or five options and deterministic balanced/cyclic checks for 1,179 items with six to eight options. Under the supported backend, **100,028 of 100,028** mapped checks passed, with a maximum aligned-logit error of `4.76837158203125e-07`. This is measured conformance on those inputs and that execution path—not proof over every input, device, dtype, kernel, cache, or serving system.
+
+## Relational questions showed why the second mode exists
+
+The locked final test contained 2,000 comparison problems across six task families and four to eight choices. Isolated `normal` scoring answered **671/2,000**, or **33.55%**, correctly. `compare_choices` answered **742/2,000**, or **37.10%**, correctly. Raw negative log-likelihood moved from 1.5853 to 1.5389.
+
+The paired outcomes explain the **+3.55-point** gain. Both modes got 612 rows right. `normal` alone got 59 right; `compare_choices` alone got 130 right. The residual recovered a net 71 answers on the same rows.
+
+A paired percentile bootstrap resampled those 2,000 matched outcomes 20,000 times. Its 95% interval ran from **+2.20 to +4.90 points**. For similarly sampled rows from these six relational task families, those endpoints correspond to roughly 44 to 98 additional correct answers per 2,000. The interval excludes zero, but it does not establish a general effect across every decision problem.
+
+## Cache: the optimization that almost won
+
+The latency table makes the obvious optimization hard to ignore: every branch repeats a long state-and-question prefix. Compute that prefix once, retain its key/value tensors, and decode each option suffix from the shared cache. In some recorded cases, that route was more than seven times faster.
+
+But the project’s target was not merely the same final answer on an average benchmark. It was numerical conformance under option permutation. Before inspecting the final cache cases, I froze three independent tolerances:
+
+| Gate | Maximum allowed difference |
+|---|---:|
+| Aligned raw logits | `0.03` |
+| Semantic probabilities | `0.02` |
+| Mapped permutation error | `1e-6` |
+
+All three were mandatory. End-task accuracy could not substitute for a failed numerical gate because a near-tie can absorb small drift in one test and flip in the next.
+
+### What the BF16 prefix cache changed
+
+The tested shared-prefix BF16 cache exceeded the raw-logit tolerance in **8 of 14 required cases**. Probability and permutation checks stayed within their limits, but that did not override the mandatory logit failure.
+
+| Released comparison | Maximum raw-logit delta |
+|---|---:|
+| Cache serial, BF16 | `0.052529335021972656` |
+| Cache batch, BF16 | `0.06663298606872559` |
+| Cache serial, FP32 diagnostic | `2.384185791015625e-06` |
+| Cache batch, FP32 diagnostic | `2.6226043701171875e-06` |
+| Maximum across required cache evidence | **`0.07161378860473633`** |
+
+The precision contrast is important. FP32 cache diagnostics were close to full recomputation, while BF16 changed raw logits by hundredths. The cache alters the numerical route: the prefix and suffix are no longer evaluated as one complete sequence, and reduced-precision attention combines intermediates through a different execution shape. The evidence establishes the resulting mismatch, not one uniquely proven low-level cause.
+
+Observed performance ratios ranged from `0.970×`—about 3% slower—to `7.102×` faster across the recorded cases. Those gains were real measurements, but the frozen protocol said correctness gates outrank throughput. The released runtime therefore sets `use_prefix_cache=False` and sends no `past_key_values`.
+
+This does **not** mean all caching is universally unsafe. It means this shared-prefix BF16 cache did not conform to the documented runtime. An FP32 cache, a different kernel, or a future implementation is a new target that must clear the same prospective checks before entering the supported contract.
+
+### Cross-request batching failed differently
+
+Caching reuses computation within a request. Batching colocates otherwise unrelated requests. These are separate experiments and failed in different ways.
+
+Evaluated alone, the selected requests produced zero semantic flips in 186 permutation checks. When the same requests were placed into BF16 batches with unrelated padding companions, **26 of 744 placements changed the semantic winner**. The largest aligned-logit delta was `0.10336923599243164`, and the largest probability delta was `0.01935756206512451`.
+
+Padding and batch shape changed the numerical path even though the set-residual equations were unchanged. That is why the reference server uses Python’s single-threaded `HTTPServer`, binds only to `127.0.0.1`, and serializes complete requests. It does not promise multiworker or dynamic-batching behavior.
+
+The practical conformance checklist is:
+
+1. Freeze thresholds before opening final cases.
+2. Align outputs by semantic identity—not by current row index.
+3. Compare raw logits, probabilities, and winners.
+4. Include near ties, variable option counts, duplicate display text, long contexts, and padding companions.
+5. Record checkpoint, base, source, device, dtype, kernel, attention, compiler, and serving identities.
+6. Reject the optimization if any mandatory gate fails.
+
+The systems lesson is stronger than “BF16 is noisy”: **mathematical symmetry is not a serving guarantee**. The dependable unit is the architecture plus the entire execution route that produced the evidence.
+
+## Choose a mode—and honor its execution contract
+
+Use `normal` by default for classification, routing, semantic-label selection, and policies that each option can satisfy independently. Use `compare_choices` when words such as *highest*, *lowest*, *second*, *closest*, *unique*, or *dominant* define the decision.
+
+For either mode, the caller submits all options in one typed request. The demonstrated execution contract is deliberately narrow:
+
+- NVIDIA L4 with Python 3.12.3, Torch 2.14.1+cu130, and Transformers 5.18.0
+- eager attention and full branch recomputation
+- one branch per model invocation with batch size one
+- one request at a time, handled serially
+- semantic remapping after option permutations
+- no key/value prefix cache and no batching of unrelated requests
+
+That boundary trades throughput for measured behavior. New devices, dtypes, quantization, kernels, attention implementations, caches, or batching strategies require new conformance evidence.
+
+The reference HTTP server is intentionally loopback-only. It has no authentication, TLS, multiworker, or public-network contract, so it should not be treated as hardened production infrastructure.
+
+## Release map: GitHub source, Hugging Face weights
+
+The release deliberately separates executable source from model payloads:
+
+- **[GitHub `v0.1.0`](https://github.com/manu-mishra/strands-gemma-order-stable-hybrid/tree/v0.1.0):** runtime package, HTTP server, tests, architecture documentation, artifact tooling, notices, and sanitized aggregate evidence.
+- **[Hugging Face `v0.1.0`](https://huggingface.co/manu-mishra/strands-gemma-order-stable-hybrid/tree/v0.1.0):** the authenticated normal and relational model components.
+- **[Google Gemma base revision](https://huggingface.co/google/gemma-4-E2B-it/tree/3e22461f65e89153144f8adb70e3b8c2cc9845a7):** separately hosted base weights required by the pinned identity.
+
+The deterministic portable manifest has SHA-256 `faa52ee416545296fabafa4c0754be98216817f4efeda3e3fb64b4ea7f481974`. It records relative paths and hashes for admitted component files, so the downloaded directory can move without retaining checkout-specific paths. Runtime validation rejects unexpected members, unsafe paths, links, noncanonical configuration, or hash mismatches before loading weights.
+
+Install the runtime from the immutable GitHub tag, download the matching Hugging Face snapshot, and validate it:
+
+```bash
+pip install "strands-gemma-order-stable-hybrid @ git+https://github.com/manu-mishra/strands-gemma-order-stable-hybrid.git@v0.1.0"
+```
+
+```python
+from huggingface_hub import snapshot_download
+from strands_gemma_order_stable_hybrid import load_hybrid
+
+path = snapshot_download(
+    "manu-mishra/strands-gemma-order-stable-hybrid",
+    revision="v0.1.0",
+)
+
+hybrid = load_hybrid(
+    path,
+    device="cuda",
+    attention_implementation="eager",
+)
+```
+
+```bash
+strands-gemma-order-stable-hybrid validate "$MODEL_PATH"
+```
+
+The Python wheel is runtime-only and contains no weights. The complete source distribution adds the tests, documentation, evidence, and tooling; model components remain on Hugging Face.
+
+## What this retrofit established
+
+The project began with a concrete defect: reversing four science answers turned a battery-powered flashlight into a solar calculator, and the controlled original-versus-reversed comparison found different semantic winners 851 times in 3,900 questions.
+
+Isolated branches removed explicit list-position inputs from base scoring while preserving the frozen Gemma torso and inherited adapter. A tied, position-free residual restored useful cross-option reasoning. Under the supported path, both modes had zero observed complete-reversal winner changes on the standard suite, broad quality stayed close to the original checkpoint, and the comparison mode improved a locked relational test by 3.55 points.
+
+The failed optimizations mattered as much as the positive result. Prefix caching and cross-request batching showed that a sound set computation can still drift in a real numerical stack. The dependable unit is not just the equation; it is the equation plus the execution contract.
+
+The evidence remains bounded. The original 21.82% observation covers complete reversal, not every permutation. The evaluations cover named standard, typed, JEVBench, and relational populations. Temperature-one probabilities are not presented as calibrated. Images are unsupported, and the loopback server is not production infrastructure. Within those limits, the retrofit demonstrates a practical way to separate semantic choice from display order without retraining the model’s core.
+
+---
+
+*Built with [Kiro](https://kiro.dev), using AI-assisted development to move from a measured failure to a tested, released system.*
+
+## References
+
+- [Project repository and v0.1.0 source release](https://github.com/manu-mishra/strands-gemma-order-stable-hybrid/tree/v0.1.0)
+- [Experiment narrative](https://github.com/manu-mishra/strands-gemma-order-stable-hybrid/blob/v0.1.0/blog.md)
+- [Architecture and backend boundary](https://github.com/manu-mishra/strands-gemma-order-stable-hybrid/blob/v0.1.0/docs/architecture.md)
+- [Order-sensitivity evidence](https://github.com/manu-mishra/strands-gemma-order-stable-hybrid/blob/v0.1.0/docs/order-sensitivity-evidence.md)
+- [Aggregate results](https://github.com/manu-mishra/strands-gemma-order-stable-hybrid/blob/v0.1.0/results/results.json)
+- [Hugging Face model release](https://huggingface.co/manu-mishra/strands-gemma-order-stable-hybrid/tree/v0.1.0)
+- [`option_branches.py` implementation](https://github.com/manu-mishra/strands-gemma-order-stable-hybrid/blob/v0.1.0/src/strands_gemma_order_stable_hybrid/option_branches.py)
+- [`set_residual.py` implementation](https://github.com/manu-mishra/strands-gemma-order-stable-hybrid/blob/v0.1.0/src/strands_gemma_order_stable_hybrid/set_residual.py)
+- [`hybrid.py` runtime composition](https://github.com/manu-mishra/strands-gemma-order-stable-hybrid/blob/v0.1.0/src/strands_gemma_order_stable_hybrid/hybrid.py)
